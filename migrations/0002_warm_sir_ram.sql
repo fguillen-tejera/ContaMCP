@@ -1,0 +1,1 @@
+ALTER TABLE `expenses` ADD `deleted_at` text;

@@ -1,0 +1,64 @@
+{
+  "name": "contamcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "homepage": "https://github.com/fguillen-tejera/ContaMCP#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fguillen-tejera/ContaMCP.git"
+  },
+  "bugs": {
+    "url": "https://github.com/fguillen-tejera/ContaMCP/issues"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@10.9.0",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "workerd"
+    ],
+    "overrides": {
+      "@esbuild-kit/core-utils>esbuild": "0.28.2",
+      "@cloudflare/vitest-plugin>zod": "4.6.7",
+      "miniflare>undici": "7.30.1"
+    }
+  },
+  "scripts": {
+    "dev": "wrangler dev",
+    "build": "wrangler deploy --env \"\" --dry-run --outdir dist",
+    "types": "wrangler types",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome lint .",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "test": "vitest run",
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate:local": "wrangler d1 migrations apply contamcp --local",
+    "build:staging": "wrangler deploy --env staging --dry-run --outdir dist/staging",
+    "db:migrate:staging:local": "wrangler d1 migrations apply DB --env staging --local",
+    "test:mcp:staging": "node scripts/mcp-staging.mts"
+  },
+  "dependencies": {
+    "@cloudflare/workers-oauth-provider": "1.2.4",
+    "@modelcontextprotocol/server": "2.3.1",
+    "drizzle-orm": "0.45.4",
+    "hono": "4.13.13",
+    "jose": "6.2.13",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.6.2",
+    "@cloudflare/vitest-plugin": "1.4.7",
+    "@modelcontextprotocol/client": "2.3.1",
+    "@types/node": "24.19.2",
+    "drizzle-kit": "0.31.11",
+    "typescript": "7.0.2",
+    "vitest": "5.0.5",
+    "wrangler": "4.152.0"
+  }
+}

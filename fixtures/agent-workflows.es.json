@@ -1,0 +1,39 @@
+[
+  {
+    "name": "persistencia_entre_conversaciones",
+    "context": {
+      "today": "2026-10-23",
+      "timezone": "America/Mexico_City",
+      "confirmedCurrency": "MXN"
+    },
+    "turns": [
+      "Gasté 450 pesos en gasolina hoy.",
+      "[Nueva conversación] ¿Cuánto llevo en transporte este mes?"
+    ],
+    "expected": "Crear una vez con amount=450.00, currency=MXN y category=transport; consultar get_expense_summary con 2026-10-01..2026-10-31. Responder desde el registro persistido."
+  },
+  {
+    "name": "correccion_ambigua",
+    "turns": ["Tengo dos gastos de gasolina hoy.", "Perdón, fueron 405."],
+    "expected": "Listar registros y preguntar cuál corregir. No modificar hasta identificar el ID exacto; usar expectedVersion y una clave nueva para la corrección confirmada."
+  },
+  {
+    "name": "moneda_ambigua",
+    "turns": ["Anota $250 de comida."],
+    "expected": "Sin contexto de moneda confirmado, preguntar si son MXN, USD o EUR. No inventar una moneda ni escribir todavía."
+  },
+  {
+    "name": "reintento_y_monedas",
+    "turns": [
+      "Registra 0.10 y 0.20 MXN de transporte, y 10 USD de comida.",
+      "La conexión falló al guardar el último gasto. Reinténtalo.",
+      "Dame el total."
+    ],
+    "expected": "Reusar clave y argumentos del intento fallido. Mostrar 0.30 MXN y 10.00 USD por separado; no crear otro gasto ni sumar monedas."
+  },
+  {
+    "name": "fecha_imposible_y_facturacion_fuera_de_alcance",
+    "turns": ["Pon ese gasto el 30 de febrero de 2026.", "Factúrame este ticket."],
+    "expected": "Solicitar una fecha válida. Explicar que la facturación de comercios aún no está implementada, sin fingir una factura ni inventar un registro."
+  }
+]

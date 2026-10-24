@@ -1,0 +1,13 @@
+node_modules/
+.wrangler/
+dist/
+coverage/
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+.env
+.env.*
+!.env.example
+.DS_Store
+*.log
+ContaMCP_Project_Brief*.md

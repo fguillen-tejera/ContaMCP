@@ -1,0 +1,6 @@
+# Copy to .dev.vars for local development, or .dev.vars.staging for approved deployment.
+# Both real files are ignored. Never put secret values in command arguments or chat.
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+# Comma-separated stable Google sub values, never emails. Mandatory in staging and for scheduled jobs; optional for local interactive OAuth.
+ALLOWED_GOOGLE_SUBJECTS=

@@ -1,0 +1,69 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "contamcp",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-23",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "workers_dev": false,
+  "triggers": { "crons": ["0 * * * *"] },
+  "vars": { "APP_ORIGIN": "http://localhost:8787", "APP_ENV": "local" },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "contamcp",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "kv_namespaces": [{ "binding": "OAUTH_KV", "id": "00000000000000000000000000000000" }],
+  "ratelimits": [
+    {
+      "name": "OAUTH_RATE_LIMIT",
+      "namespace_id": "21001",
+      "simple": { "limit": 20, "period": 60 }
+    },
+    { "name": "MCP_RATE_LIMIT", "namespace_id": "21002", "simple": { "limit": 120, "period": 60 } }
+  ],
+  "env": {
+    "staging": {
+      "name": "contamcp-staging",
+      // Replace with your own Cloudflare account and provisioned resource IDs before deploying.
+      "account_id": "00000000000000000000000000000000",
+      "workers_dev": true,
+      "preview_urls": false,
+      "triggers": { "crons": ["0 * * * *"] },
+      "vars": {
+        "APP_ORIGIN": "https://contamcp-staging.YOUR_SUBDOMAIN.workers.dev",
+        "APP_ENV": "staging"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "contamcp-staging",
+          "database_id": "00000000-0000-0000-0000-000000000001",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "kv_namespaces": [{ "binding": "OAUTH_KV", "id": "00000000000000000000000000000001" }],
+      "ratelimits": [
+        {
+          "name": "OAUTH_RATE_LIMIT",
+          "namespace_id": "22001",
+          "simple": { "limit": 20, "period": 60 }
+        },
+        {
+          "name": "MCP_RATE_LIMIT",
+          "namespace_id": "22002",
+          "simple": { "limit": 120, "period": 60 }
+        }
+      ]
+    }
+  },
+  "observability": {
+    "enabled": true,
+    "redact_query_string": true,
+    "logs": { "enabled": true, "invocation_logs": false, "head_sampling_rate": 0.1 },
+    // OAuth callback URLs contain authorization codes. Enable traces only after a redaction review.
+    "traces": { "enabled": false }
+  }
+}

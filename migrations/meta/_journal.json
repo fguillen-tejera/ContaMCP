@@ -1,0 +1,55 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1792745750924,
+      "tag": "0000_friendly_cannonball",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1792809822528,
+      "tag": "0001_bright_norman_osborn",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1792810203636,
+      "tag": "0002_warm_sir_ram",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1792813318272,
+      "tag": "0003_keen_lady_ursula",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1792816359511,
+      "tag": "0004_bright_albert_cleary",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1792862580624,
+      "tag": "0005_loud_spyke",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1792863258643,
+      "tag": "0006_eminent_wong",
+      "breakpoints": true
+    }
+  ]
+}

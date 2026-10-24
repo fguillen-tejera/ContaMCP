@@ -1,0 +1,96 @@
+{
+  "status": "Authored expectations only; not executed agent evaluations",
+  "cases": [
+    {
+      "prompt": "Recibí 15,000 pesos mexicanos por un proyecto de diseño. Regístralo como ingreso hoy.",
+      "expected": "Create one income entry with MXN, exact amount, explicit category, and today's Mexico City date."
+    },
+    {
+      "prompt": "Anota 450 MXN de gasolina Pemex hoy.",
+      "setup": "Existing live expense: Gasolina Pemex, 445 MXN, same date.",
+      "expected": "Present possible duplicate and ask whether separate; no write before confirmation."
+    },
+    {
+      "prompt": "Sí, fue otra compra distinta.",
+      "setup": "Previous duplicate warning is pending.",
+      "expected": "Acknowledge returned candidate IDs/versions only after this confirmation; save once and preserve retry key."
+    },
+    {
+      "prompt": "Pagué Netflix por 199 MXN hoy.",
+      "expected": "Check for an existing schedule/payment. Offer monthly recurring setup if appropriate, but ask for frequency and first tracked date; never create a schedule silently."
+    },
+    {
+      "prompt": "Sí, ya pagué la mensualidad de enero; esta vez fueron 201.50 MXN el 2 de febrero.",
+      "setup": "Monthly schedule due January 31; expected amount 199 MXN.",
+      "expected": "Confirm that occurrence with actual amount/date; advance next date to February 28 and preserve March 31 anchor."
+    },
+    {
+      "prompt": "Ese pago ya está registrado; vincúlalo a la suscripción.",
+      "setup": "One user-identified matching unlinked payment and one due schedule.",
+      "expected": "Link the existing entry using its version; do not create a second expense."
+    },
+    {
+      "prompt": "Quiero ahorrar 30,000 MXN para diciembre y ya aparté 500 MXN hoy.",
+      "expected": "Clarify deadline year if ambiguous; create goal and record explicit 500 MXN allocation separately, without another expense."
+    },
+    {
+      "prompt": "¿Cuánto llevo ahorrado?",
+      "setup": "Income exceeds expenses but no goal contributions are recorded.",
+      "expected": "Report only explicit goal allocations; never infer savings or account balances from net cash flow."
+    },
+    {
+      "prompt": "Tengo Netflix, 199 MXN mensuales, el día 15. Empieza el 15 de noviembre de 2026.",
+      "expected": "Create the explicitly established recurrence with automatic recording enabled by default. State it will record 199 MXN each billing date. Do not ask an extra automation question."
+    },
+    {
+      "prompt": "Este mes Netflix sí se cobró, pero fueron 300 MXN.",
+      "setup": "An automatic/unverified Netflix occurrence exists for this billing period at 199 MXN.",
+      "expected": "List the schedule and its existing occurrence, then confirm that same entry with the actual reported amount and date. Preserve automatic provenance; never create a second expense or advance the schedule twice."
+    },
+    {
+      "prompt": "Pausa el registro de Netflix hasta que te avise.",
+      "expected": "Pause the user-selected schedule. Explain that this pauses bookkeeping, not the merchant subscription. Preserve prior charges."
+    },
+    {
+      "prompt": "Sáltate la mensualidad de noviembre.",
+      "setup": "The November occurrence has not yet been recorded.",
+      "expected": "Skip exactly that occurrence with its current schedule version and keep the monthly schedule. If it was already recorded, delete the correct entry only after explicit intent instead of skipping December."
+    },
+    {
+      "prompt": "Busca los gastos de Pemex de octubre entre 400 y 500 MXN.",
+      "expected": "Use list_entries with literal query, explicit October year/date range, inclusive amount bounds and MXN. Follow cursors; search is not permission to modify a candidate."
+    },
+    {
+      "prompt": "¿En qué categorías gasté este mes y cuánto cambió respecto al periodo anterior?",
+      "expected": "Use get_ledger_report with explicit dates and comparison. Explain the returned comparison dates, separate currencies, and identify automatic/unverified amounts; do not sum fetched pages in the model."
+    },
+    {
+      "prompt": "Usa MXN por defecto salvo que indique otra moneda.",
+      "expected": "Read get_preferences, then persist this explicit default with its current expectedVersion and a retry key. A fresh conversation reads the approved default; an explicitly supplied different currency overrides it."
+    },
+    {
+      "prompt": "Pon un límite de 4,000 MXN de supermercado para octubre de 2026.",
+      "expected": "List the explicit month first; set_monthly_budget for groceries/MXN using current version or 0. No rollover, renewals, alerts, or ledger expense is created."
+    },
+    {
+      "prompt": "¿Cuánto me queda del presupuesto de supermercado de octubre de 2026?",
+      "expected": "Read list_monthly_budgets for 2026-10. Report exact remainingAmount and separately mention unverifiedAmount when present. Do not invent a limit if no budget exists."
+    },
+    {
+      "prompt": "¿Qué depósitos forman el saldo de mi meta de ahorro?",
+      "expected": "Identify the goal, then page get_activity_history for kind goal. Use stored contribution details rather than inferring allocations from income."
+    },
+    {
+      "prompt": "Restaura el gasto de gasolina de 450 MXN del 1 de octubre de 2026 que borré.",
+      "expected": "List with deleted=only, identify the exact user-selected entry, and restore_entry using user facts/current version. Ask about ambiguity or possible duplicates. Preserve the original receipt and recurring association."
+    },
+    {
+      "prompt": "Exporta todos mis datos financieros como respaldo.",
+      "expected": "Export every page of every export_backup dataset, including original entry/planning/account history. Explain live-page consistency; never label one page or entry-only export a complete backup."
+    },
+    {
+      "prompt": "Dame mis gastos en CSV.",
+      "expected": "Use export_expenses with format csv for expense-only requests, or export_entries for mixed income/expenses. Follow every nextCursor. Use server-generated CSV without recalculating values, and explain that exported records include soft-deleted entries."
+    }
+  ]
+}

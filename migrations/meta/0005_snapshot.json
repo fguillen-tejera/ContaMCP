@@ -1,0 +1,668 @@
+{
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "877f238b-bc9d-4d9d-8407-593dfe019281",
+  "prevId": "422759a6-333a-4f79-873a-4c01cf85aa7e",
+  "tables": {
+    "expenses": {
+      "name": "expenses",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "owner_id": {
+          "name": "owner_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "source": {
+          "name": "source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'user'"
+        },
+        "payment_status": {
+          "name": "payment_status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'confirmed'"
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'expense'"
+        },
+        "recurring_id": {
+          "name": "recurring_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "occurrence_date": {
+          "name": "occurrence_date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "amount_minor": {
+          "name": "amount_minor",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "currency": {
+          "name": "currency",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "date": {
+          "name": "date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "category": {
+          "name": "category",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "entry_recurring_occurrence": {
+          "name": "entry_recurring_occurrence",
+          "columns": [
+            "owner_id",
+            "recurring_id",
+            "occurrence_date"
+          ],
+          "isUnique": true
+        },
+        "entry_duplicate_lookup": {
+          "name": "entry_duplicate_lookup",
+          "columns": [
+            "owner_id",
+            "type",
+            "currency",
+            "date"
+          ],
+          "isUnique": false
+        },
+        "expense_owner_id": {
+          "name": "expense_owner_id",
+          "columns": [
+            "owner_id",
+            "id"
+          ],
+          "isUnique": true
+        },
+        "expense_owner_date_id": {
+          "name": "expense_owner_date_id",
+          "columns": [
+            "owner_id",
+            "date",
+            "id"
+          ],
+          "isUnique": false
+        },
+        "expense_owner_category_date": {
+          "name": "expense_owner_category_date",
+          "columns": [
+            "owner_id",
+            "category",
+            "date"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "expenses_owner_id_users_id_fk": {
+          "name": "expenses_owner_id_users_id_fk",
+          "tableFrom": "expenses",
+          "tableTo": "users",
+          "columnsFrom": [
+            "owner_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "valid_recording_source": {
+          "name": "valid_recording_source",
+          "value": "\"expenses\".\"source\" IN ('user', 'recurring')"
+        },
+        "valid_payment_status": {
+          "name": "valid_payment_status",
+          "value": "\"expenses\".\"payment_status\" IN ('confirmed', 'unverified') AND (\"expenses\".\"payment_status\" = 'confirmed' OR (\"expenses\".\"source\" = 'recurring' AND \"expenses\".\"recurring_id\" IS NOT NULL))"
+        },
+        "valid_entry_type": {
+          "name": "valid_entry_type",
+          "value": "\"expenses\".\"type\" IN ('expense', 'income')"
+        },
+        "valid_occurrence": {
+          "name": "valid_occurrence",
+          "value": "(\"expenses\".\"recurring_id\" IS NULL AND \"expenses\".\"occurrence_date\" IS NULL) OR (\"expenses\".\"recurring_id\" IS NOT NULL AND \"expenses\".\"occurrence_date\" IS NOT NULL)"
+        },
+        "positive_exact_amount": {
+          "name": "positive_exact_amount",
+          "value": "typeof(\"expenses\".\"amount_minor\") = 'integer' AND \"expenses\".\"amount_minor\" BETWEEN 1 AND 999999999999"
+        },
+        "valid_currency": {
+          "name": "valid_currency",
+          "value": "\"expenses\".\"currency\" IN ('MXN', 'USD', 'EUR')"
+        },
+        "valid_description": {
+          "name": "valid_description",
+          "value": "length(trim(\"expenses\".\"description\")) BETWEEN 1 AND 500"
+        },
+        "positive_version": {
+          "name": "positive_version",
+          "value": "typeof(\"expenses\".\"version\") = 'integer' AND \"expenses\".\"version\" > 0"
+        },
+        "valid_category": {
+          "name": "valid_category",
+          "value": "\"expenses\".\"category\" IN ('food_drink', 'groceries', 'transport', 'shopping', 'entertainment', 'education', 'bills_services', 'health', 'home', 'pets', 'travel', 'other')"
+        },
+        "valid_date": {
+          "name": "valid_date",
+          "value": "\"expenses\".\"date\" GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]' AND \"expenses\".\"date\" BETWEEN '1900-01-01' AND '9999-12-31' AND date(\"expenses\".\"date\", '+0 days') IS NOT NULL AND date(\"expenses\".\"date\", '+0 days') = \"expenses\".\"date\""
+        }
+      }
+    },
+    "expense_mutations": {
+      "name": "expense_mutations",
+      "columns": {
+        "owner_id": {
+          "name": "owner_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "idempotency_key": {
+          "name": "idempotency_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "request_hash": {
+          "name": "request_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "expense_id": {
+          "name": "expense_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "before_json": {
+          "name": "before_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "after_json": {
+          "name": "after_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "prev_hash": {
+          "name": "prev_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "entry_hash": {
+          "name": "entry_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "mutation_expense_version": {
+          "name": "mutation_expense_version",
+          "columns": [
+            "expense_id",
+            "version"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "expense_mutations_owner_id_users_id_fk": {
+          "name": "expense_mutations_owner_id_users_id_fk",
+          "tableFrom": "expense_mutations",
+          "tableTo": "users",
+          "columnsFrom": [
+            "owner_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "expense_mutations_owner_id_expense_id_expenses_owner_id_id_fk": {
+          "name": "expense_mutations_owner_id_expense_id_expenses_owner_id_id_fk",
+          "tableFrom": "expense_mutations",
+          "tableTo": "expenses",
+          "columnsFrom": [
+            "owner_id",
+            "expense_id"
+          ],
+          "columnsTo": [
+            "owner_id",
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "expense_mutations_owner_id_idempotency_key_pk": {
+          "columns": [
+            "owner_id",
+            "idempotency_key"
+          ],
+          "name": "expense_mutations_owner_id_idempotency_key_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "mutation_positive_version": {
+          "name": "mutation_positive_version",
+          "value": "\"expense_mutations\".\"version\" > 0"
+        }
+      }
+    },
+    "planning_mutations": {
+      "name": "planning_mutations",
+      "columns": {
+        "owner_id": {
+          "name": "owner_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "idempotency_key": {
+          "name": "idempotency_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "request_hash": {
+          "name": "request_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "kind": {
+          "name": "kind",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "entity_id": {
+          "name": "entity_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "before_json": {
+          "name": "before_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "after_json": {
+          "name": "after_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "details_json": {
+          "name": "details_json",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "planning_entity_version": {
+          "name": "planning_entity_version",
+          "columns": [
+            "owner_id",
+            "kind",
+            "entity_id",
+            "version"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "planning_mutations_owner_id_users_id_fk": {
+          "name": "planning_mutations_owner_id_users_id_fk",
+          "tableFrom": "planning_mutations",
+          "tableTo": "users",
+          "columnsFrom": [
+            "owner_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "planning_mutations_owner_id_idempotency_key_pk": {
+          "columns": [
+            "owner_id",
+            "idempotency_key"
+          ],
+          "name": "planning_mutations_owner_id_idempotency_key_pk"
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "planning_positive_version": {
+          "name": "planning_positive_version",
+          "value": "\"planning_mutations\".\"version\" > 0"
+        }
+      }
+    },
+    "recurring_entries": {
+      "name": "recurring_entries",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "owner_id": {
+          "name": "owner_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "data": {
+          "name": "data",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "recurring_owner_id": {
+          "name": "recurring_owner_id",
+          "columns": [
+            "owner_id",
+            "id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "recurring_entries_owner_id_users_id_fk": {
+          "name": "recurring_entries_owner_id_users_id_fk",
+          "tableFrom": "recurring_entries",
+          "tableTo": "users",
+          "columnsFrom": [
+            "owner_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "recurring_valid_data": {
+          "name": "recurring_valid_data",
+          "value": "json_valid(\"recurring_entries\".\"data\") AND json_extract(\"recurring_entries\".\"data\", '$.id') = \"recurring_entries\".\"id\" AND json_extract(\"recurring_entries\".\"data\", '$.version') = \"recurring_entries\".\"version\" AND \"recurring_entries\".\"version\" > 0"
+        }
+      }
+    },
+    "savings_goals": {
+      "name": "savings_goals",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "owner_id": {
+          "name": "owner_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "version": {
+          "name": "version",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "data": {
+          "name": "data",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "goal_owner_id": {
+          "name": "goal_owner_id",
+          "columns": [
+            "owner_id",
+            "id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "savings_goals_owner_id_users_id_fk": {
+          "name": "savings_goals_owner_id_users_id_fk",
+          "tableFrom": "savings_goals",
+          "tableTo": "users",
+          "columnsFrom": [
+            "owner_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "goal_valid_data": {
+          "name": "goal_valid_data",
+          "value": "json_valid(\"savings_goals\".\"data\") AND json_extract(\"savings_goals\".\"data\", '$.id') = \"savings_goals\".\"id\" AND json_extract(\"savings_goals\".\"data\", '$.version') = \"savings_goals\".\"version\" AND \"savings_goals\".\"version\" > 0"
+        },
+        "goal_exact_balance": {
+          "name": "goal_exact_balance",
+          "value": "CAST(CAST(json_extract(\"savings_goals\".\"data\", '$.savedMinor') AS INTEGER) AS TEXT) = json_extract(\"savings_goals\".\"data\", '$.savedMinor') AND CAST(json_extract(\"savings_goals\".\"data\", '$.savedMinor') AS INTEGER) BETWEEN 0 AND 999999999999"
+        }
+      }
+    },
+    "users": {
+      "name": "users",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "google_subject": {
+          "name": "google_subject",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "users_google_subject_unique": {
+          "name": "users_google_subject_unique",
+          "columns": [
+            "google_subject"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "indexes": {}
+  }
+}
