@@ -1,0 +1,736 @@
+<!doctype html>
+<html lang="es-MX">
+  <head>
+    <meta charset="UTF-8">
+    <script src="/locale.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#09090b">
+    <meta
+      name="description"
+      content="Dale superpoderes financieros a tu IA. Herramientas de código abierto para registrar ingresos, gastos, presupuestos y ahorros desde ChatGPT y otros asistentes compatibles."
+    >
+    <title>ContaMCP — Dale superpoderes financieros a tu IA.</title>
+    <link rel="canonical" href="https://contamcp.web.app/es">
+    <link rel="alternate" hreflang="es-MX" href="https://contamcp.web.app/es">
+    <link rel="alternate" hreflang="en" href="https://contamcp.web.app/en">
+    <link rel="alternate" hreflang="x-default" href="https://contamcp.web.app/">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;450;500;550;600;650;700;750&display=swap"
+      rel="stylesheet"
+    >
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/main.js" type="module"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Saltar al contenido</a>
+    <svg class="icon-definitions" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <symbol id="copy" viewBox="0 0 24 24">
+        <rect x="8" y="8" width="12" height="13" rx="2" />
+        <path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3" />
+      </symbol>
+      <symbol id="thumb" viewBox="0 0 24 24">
+        <path d="M7 10H3v11h4m0-11 5-8a3 3 0 0 1 2 3l-1 5h6a2 2 0 0 1 2 2l-2 7a3 3 0 0 1-3 2H7Z" />
+      </symbol>
+      <symbol id="mark" viewBox="0 0 32 32">
+        <path d="M21 6a11 11 0 1 0 0 20M14 13h13M14 19h10" />
+      </symbol>
+      <symbol id="arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6" /></symbol>
+      <symbol id="external" viewBox="0 0 24 24"><path d="M7 17 17 7M7 7h10v10" /></symbol>
+      <symbol id="github" viewBox="0 0 24 24">
+        <path
+          fill="currentColor"
+          stroke="none"
+          d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.86c-2.78.6-3.37-1.18-3.37-1.18-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.64-1.34-2.22-.25-4.56-1.11-4.56-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.58 9.58 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.69-4.57 4.94.36.31.68.92.68 1.85v2.75c0 .27.18.58.69.48A10 10 0 0 0 12 2Z"
+        />
+      </symbol>
+      <symbol id="input-text" viewBox="0 0 24 24"><path d="M4 5h16M12 5v14m-4 0h8" /></symbol>
+      <symbol id="input-photo" viewBox="0 0 24 24">
+        <rect x="3" y="3" width="18" height="18" rx="3" />
+        <circle cx="8" cy="8" r="1.5" />
+        <path d="m3 17 5-5 4 4 4-6 5 7" />
+      </symbol>
+      <symbol id="input-pdf" viewBox="0 0 24 24">
+        <path
+          d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Zm0 0v6h6M8 13h8m-8 4h5"
+        />
+      </symbol>
+      <symbol id="input-voice" viewBox="0 0 24 24">
+        <rect x="9" y="3" width="6" height="12" rx="3" />
+        <path d="M5 10v2a7 7 0 0 0 14 0v-2m-7 9v3m-4 0h8" />
+      </symbol>
+      <symbol id="chevron" viewBox="0 0 24 24"><path d="m7 10 5 5 5-5" /></symbol>
+      <symbol id="income" viewBox="0 0 24 24">
+        <path d="M12 3v12m-5-5 5 5 5-5M4 16v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4" />
+      </symbol>
+      <symbol id="up" viewBox="0 0 24 24"><path d="M12 19V5m-6 6 6-6 6 6" /></symbol>
+      <symbol id="check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6" /></symbol>
+      <symbol id="repeat" viewBox="0 0 24 24">
+        <path d="m17 2 4 4-4 4M3 11V8a2 2 0 0 1 2-2h16M7 22l-4-4 4-4m14-1v3a2 2 0 0 1-2 2H3" />
+      </symbol>
+      <symbol id="chart" viewBox="0 0 24 24"><path d="M4 4v16h17M9 15v-4m5 4V7m5 8v-6" /></symbol>
+      <symbol id="insights" viewBox="0 0 24 24">
+        <path d="m12 3 2.8 6.2L21 12l-6.2 2.8L12 21l-2.8-6.2L3 12l6.2-2.8Z" />
+      </symbol>
+      <symbol id="target" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9" />
+        <circle cx="12" cy="12" r="5" />
+        <circle cx="12" cy="12" r="1" />
+      </symbol>
+      <symbol id="entries" viewBox="0 0 24 24">
+        <path
+          d="M8 3h11a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2ZM3 7h5m-5 5h5m-5 5h5m4-9h5m-5 5h5"
+        />
+      </symbol>
+    </svg>
+    <header class="header">
+      <nav class="nav container" aria-label="Navegación principal">
+        <a class="brand" href="#main" aria-label="Inicio de ContaMCP"
+          ><svg aria-hidden="true"><use href="#mark" /></svg
+          ><span>Conta<span class="brand-muted">MCP</span></span></a
+        >
+        <div class="nav-links">
+          <a class="language-switch" href="/en" hreflang="en" lang="en" aria-label="View in English"
+            >EN</a
+          >
+          <a
+            class="nav-github"
+            href="https://github.com/fguillen-tejera/ContaMCP"
+            aria-label="GitHub"
+          >
+            <svg aria-hidden="true" class="icon"><use href="#github" /></svg><span>GitHub</span>
+          </a>
+          <a class="button button-primary nav-cta" href="#get-started"
+            >Empieza aquí<svg aria-hidden="true" class="icon"><use href="#arrow" /></svg></a
+          >
+        </div>
+      </nav>
+    </header>
+    <main id="main">
+      <div class="intro">
+        <section class="hero container" aria-labelledby="hero-title">
+          <h1 id="hero-title" aria-label="Dale a tu IA superpoderes financieros.">
+            <span class="hero-line" aria-hidden="true"
+              ><span class="hero-word">Dale</span> <span class="hero-word">a</span>
+              <span class="hero-word">tu</span> <span class="hero-word">IA</span></span
+            ><span class="hero-line" aria-hidden="true"
+              ><span class="hero-word">superpoderes</span>
+              <span class="hero-word">financieros.</span></span
+            >
+          </h1>
+          <p class="hero-description">
+            Lleva tus ingresos, gastos, presupuestos y metas de ahorro desde ChatGPT.<br
+              class="desktop-break"
+            >
+            Tú compartes los movimientos. Sin conexión a tu banco.
+          </p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#get-started"
+              >Empieza aquí<svg aria-hidden="true" class="icon"><use href="#arrow" /></svg></a
+            ><a class="source-link" href="https://github.com/fguillen-tejera/ContaMCP"
+              ><svg aria-hidden="true" class="icon"><use href="#github" /></svg>Ver en GitHub<svg
+                aria-hidden="true"
+                class="icon small"
+              >
+                <use href="#external" />
+              </svg></a
+            >
+          </div>
+        </section>
+
+        <section
+          class="demo-section container"
+          id="demo"
+          aria-label="Ejemplo de una conversación en ChatGPT con ContaMCP"
+        >
+          <div class="demo-glow" aria-hidden="true"></div>
+          <div class="demo-layout">
+            <div class="demo-heading">
+              <span class="overline">ASÍ FUNCIONA EN CHATGPT</span>
+              <h2 class="demo-title">
+                Tú preguntas.<br><span class="heading-muted">Las cuentas responden.</span>
+              </h2>
+              <div
+                class="demo-tabs"
+                role="tablist"
+                aria-label="Conversaciones de ejemplo"
+                aria-orientation="vertical"
+              >
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected="true"
+                  aria-controls="demo-panel"
+                  id="tab-record"
+                  data-scenario="record"
+                >
+                  <span class="demo-tab-icon"
+                    ><svg aria-hidden="true" class="icon"><use href="#entries" /></svg></span
+                  >Registrar un gasto<svg aria-hidden="true" class="icon small tab-arrow">
+                    <use href="#arrow" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="demo-panel"
+                  id="tab-income"
+                  data-scenario="income"
+                  tabindex="-1"
+                >
+                  <span class="demo-tab-icon"
+                    ><svg aria-hidden="true" class="icon"><use href="#income" /></svg></span
+                  >Registrar un ingreso<svg aria-hidden="true" class="icon small tab-arrow">
+                    <use href="#arrow" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="demo-panel"
+                  id="tab-month"
+                  data-scenario="month"
+                  tabindex="-1"
+                >
+                  <span class="demo-tab-icon"
+                    ><svg aria-hidden="true" class="icon"><use href="#chart" /></svg></span
+                  >Revisar gastos<svg aria-hidden="true" class="icon small tab-arrow">
+                    <use href="#arrow" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="demo-panel"
+                  id="tab-insights"
+                  data-scenario="insights"
+                  tabindex="-1"
+                >
+                  <span class="demo-tab-icon"
+                    ><svg aria-hidden="true" class="icon"><use href="#insights" /></svg></span
+                  >
+                  Reducir gastos<svg aria-hidden="true" class="icon small tab-arrow">
+                    <use href="#arrow" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="demo-panel"
+                  id="tab-recurring"
+                  data-scenario="recurring"
+                  tabindex="-1"
+                >
+                  <span class="demo-tab-icon"
+                    ><svg aria-hidden="true" class="icon"><use href="#repeat" /></svg></span
+                  >Ver pagos recurrentes<svg aria-hidden="true" class="icon small tab-arrow">
+                    <use href="#arrow" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="demo-panel"
+                  id="tab-plan"
+                  data-scenario="plan"
+                  tabindex="-1"
+                >
+                  <span class="demo-tab-icon"
+                    ><svg aria-hidden="true" class="icon"><use href="#target" /></svg></span
+                  >Seguir el ahorro<svg aria-hidden="true" class="icon small tab-arrow">
+                    <use href="#arrow" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div class="demo-stage">
+              <div class="demo-format-slot">
+                <fieldset
+                  class="expense-formats"
+                  id="expense-formats"
+                  aria-label="Formas de registrar un gasto"
+                >
+                  <button type="button" data-expense-format="text" aria-pressed="true">
+                    <svg aria-hidden="true" class="icon"><use href="#input-text" /></svg>Texto
+                  </button>
+                  <button type="button" data-expense-format="receipt" aria-pressed="false">
+                    <svg aria-hidden="true" class="icon"><use href="#input-photo" /></svg>Foto
+                  </button>
+                  <button type="button" data-expense-format="pdf" aria-pressed="false">
+                    <svg aria-hidden="true" class="icon"><use href="#input-pdf" /></svg>PDF
+                  </button>
+                  <button type="button" data-expense-format="voice" aria-pressed="false">
+                    <svg aria-hidden="true" class="icon"><use href="#input-voice" /></svg>Voz
+                  </button>
+                </fieldset>
+              </div>
+              <div class="demo-window">
+                <div class="chatgpt-header">
+                  <span class="chatgpt-wordmark">ChatGPT</span
+                  ><span class="chatgpt-connection"
+                    ><span class="status-dot"></span>ContaMCP conectado</span
+                  >
+                </div>
+                <div
+                  class="conversation"
+                  id="demo-panel"
+                  role="tabpanel"
+                  aria-labelledby="tab-record"
+                >
+                  <div class="demo-transcript">
+                    <div class="demo-attachment" id="demo-attachment" hidden>
+                      <div
+                        class="receipt-attachment"
+                        id="demo-receipt-attachment"
+                        hidden
+                        role="img"
+                        aria-label="Ejemplo de un recibo de gasolina por $450"
+                      >
+                        <div class="receipt-paper" aria-hidden="true">
+                          <svg class="icon" aria-hidden="true"><use href="#input-pdf" /></svg>
+                          <strong>GASOLINERA</strong>
+                          <span>24 / 10 / 2026</span>
+                          <div class="receipt-rule"></div>
+                          <span>Gasolina</span>
+                          <strong class="receipt-total" id="demo-receipt-total">$450.00</strong>
+                          <div class="receipt-barcode"></div>
+                        </div>
+                      </div>
+                      <div class="pdf-attachment" id="demo-pdf-attachment" hidden>
+                        <span class="attachment-file-icon"
+                          ><svg class="icon" aria-hidden="true">
+                            <use href="#input-pdf" />
+                          </svg></span
+                        >
+                        <span
+                          ><strong>estado-de-cuenta-octubre.pdf</strong
+                          ><span class="attachment-meta">PDF · 124 KB</span></span
+                        >
+                      </div>
+                      <div
+                        class="voice-attachment"
+                        id="demo-voice-attachment"
+                        role="img"
+                        hidden
+                        aria-label="Ejemplo de mensaje de voz, 6 segundos"
+                      >
+                        <svg class="icon" aria-hidden="true"><use href="#input-voice" /></svg>
+                        <span class="voice-waveform" aria-hidden="true"
+                          ><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i
+                          ><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i
+                          ><i></i><i></i><i></i><i></i><i></i></span
+                        ><span>0:06</span>
+                      </div>
+                    </div>
+                    <div class="user-message" lang="es" id="demo-prompt">
+                      Gasté $450 en gasolina hoy.
+                    </div>
+                    <div class="assistant-message">
+                      <span class="tool-call"
+                        ><svg aria-hidden="true" class="icon tool-check"><use href="#check" /></svg
+                        ><span class="tool-spinner" aria-hidden="true"></span
+                        ><span id="demo-tool-label">Se usó ContaMCP</span
+                        ><span class="working-dots" aria-hidden="true"><i></i><i></i><i></i></span
+                        ><svg aria-hidden="true" class="icon chevron">
+                          <use href="#chevron" />
+                        </svg></span
+                      >
+                      <p id="demo-reply" lang="es">Listo, tu gasto quedó registrado.</p>
+                      <section
+                        class="expense-response demo-visual"
+                        id="demo-expense"
+                        aria-label="Confirmación del gasto de ejemplo"
+                      >
+                        <ul class="expense-details">
+                          <li><strong>Gasto:</strong> Gasolina</li>
+                          <li>
+                            <strong>Monto:</strong>
+                            <span id="demo-expense-amount">$450.00 MXN</span>
+                          </li>
+                          <li><strong>Categoría:</strong> Transporte</li>
+                          <li><strong>Fecha:</strong> 24 de octubre de 2026</li>
+                        </ul>
+                      </section>
+                      <section
+                        class="import-response demo-visual"
+                        id="demo-import"
+                        aria-label="Movimientos del estado de cuenta por revisar"
+                        hidden
+                      >
+                        <div class="import-heading">
+                          <h3>Gastos encontrados</h3>
+                          <span>Pendientes de tu revisión</span>
+                        </div>
+                        <table class="chat-table">
+                          <thead>
+                            <tr>
+                              <th scope="col">Fecha</th>
+                              <th scope="col">Gasto</th>
+                              <th scope="col">Monto</th>
+                            </tr>
+                          </thead>
+                          <tbody id="demo-import-rows"></tbody>
+                          <tfoot>
+                            <tr>
+                              <th scope="row" colspan="2">Total</th>
+                              <td id="demo-import-total"></td>
+                            </tr>
+                          </tfoot>
+                        </table>
+                      </section>
+                      <section
+                        class="income-response demo-visual"
+                        id="demo-income"
+                        aria-label="Confirmación del ingreso y flujo mensual de ejemplo"
+                        hidden
+                      >
+                        <p class="income-description">Sueldo · 24 de octubre de 2026</p>
+                        <p class="income-highlight" id="demo-income-amount">+$18,000.00 MXN</p>
+                        <h3 class="chart-heading">Así queda tu mes</h3>
+                        <table class="chat-table income-summary">
+                          <thead>
+                            <tr>
+                              <th scope="col">Octubre de 2026</th>
+                              <th scope="col">MXN</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <th scope="row">Ingresos</th>
+                              <td class="income-positive" id="demo-income-total">+$18,000.00</td>
+                            </tr>
+                            <tr>
+                              <th scope="row">Gastos</th>
+                              <td id="demo-income-expenses">−$6,499.00</td>
+                            </tr>
+                            <tr class="income-net-row">
+                              <th scope="row">Saldo registrado</th>
+                              <td class="income-positive" id="demo-income-net">+$11,501.00</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </section>
+                      <section
+                        class="monthly-response demo-visual"
+                        id="demo-month"
+                        aria-label="Resumen mensual de gastos de ejemplo"
+                        hidden
+                      >
+                        <p class="monthly-total-label">Total gastado este mes</p>
+                        <p class="monthly-total" id="demo-month-total">$6,499.00 MXN</p>
+                        <p class="monthly-period">Del 1 al 24 de octubre de 2026</p>
+                        <h3 class="chart-heading">Desglose por categoría</h3>
+                        <div class="spending-chart-grid">
+                          <svg
+                            class="spending-donut"
+                            role="img"
+                            aria-labelledby="donut-title"
+                            viewBox="0 0 180 180"
+                          >
+                            <title id="donut-title">
+                              Distribución por categoría de 6,499 MXN en 14 gastos
+                            </title>
+                            <g id="demo-donut-segments"></g>
+                            <text
+                              class="donut-count"
+                              id="demo-month-count"
+                              x="90"
+                              y="88"
+                              text-anchor="middle"
+                            >
+                              14
+                            </text>
+                            <text class="donut-label" x="90" y="107" text-anchor="middle">
+                              gastos
+                            </text>
+                          </svg>
+                          <ul
+                            class="chart-legend"
+                            id="demo-chart-legend"
+                            aria-label="Importes por categoría en MXN"
+                          ></ul>
+                        </div>
+                      </section>
+                      <section
+                        class="recurring-response demo-visual"
+                        id="demo-recurring"
+                        aria-label="Próximos pagos recurrentes de ejemplo"
+                        hidden
+                      >
+                        <h3 class="chart-heading">Próximos pagos</h3>
+                        <ul class="upcoming-list" id="demo-upcoming-list"></ul>
+                      </section>
+                      <section
+                        class="goal-response demo-visual"
+                        id="demo-goal"
+                        aria-label="Progreso de la meta de ahorro de ejemplo"
+                        hidden
+                      >
+                        <div class="goal-heading">
+                          <h3 id="demo-goal-title">Viaje a Oaxaca</h3>
+                          <span>Diciembre de 2026</span>
+                        </div>
+                        <div class="goal-amounts">
+                          <strong id="demo-goal-saved">$8,000.00</strong
+                          ><span>de <span id="demo-goal-target">$20,000.00 MXN</span></span>
+                        </div>
+                        <div
+                          class="goal-progress"
+                          id="demo-goal-progress"
+                          role="progressbar"
+                          aria-labelledby="demo-goal-title"
+                          aria-valuemin="0"
+                          aria-valuemax="100"
+                          aria-valuenow="40"
+                          aria-valuetext="8,000 de 20,000 MXN"
+                        >
+                          <span class="goal-progress-fill"></span>
+                        </div>
+                        <div class="goal-progress-meta">
+                          <span id="demo-goal-percent">40% completado</span
+                          ><span id="demo-goal-remaining">Faltan $12,000.00 MXN</span>
+                        </div>
+                      </section>
+                      <section
+                        class="insights-response demo-visual"
+                        id="demo-insights"
+                        aria-label="Ejemplo de análisis de gastos y una meta opcional"
+                        hidden
+                      >
+                        <h3 class="chart-heading">Empieza por comida y bebidas</h3>
+                        <p class="insights-description">
+                          Es la categoría con más gastos registrados este mes. Revisa esos
+                          movimientos para encontrar cambios que se ajusten a tu rutina.
+                        </p>
+                        <dl class="insights-comparison">
+                          <div>
+                            <dt>Gastado este mes</dt>
+                            <dd id="demo-insights-current">$2,350.00 MXN</dd>
+                          </div>
+                          <div>
+                            <dt>Meta sugerida para el próximo mes</dt>
+                            <dd id="demo-insights-target">$2,000.00 MXN</dd>
+                          </div>
+                        </dl>
+                        <div class="insights-savings">
+                          <span>Menos gasto si cumples esa meta</span>
+                          <strong id="demo-insights-savings">$350.00 MXN</strong>
+                        </div>
+                      </section>
+                      <p class="demo-followup" id="demo-followup" lang="es">
+                        ¿Quieres ver cuánto llevas en transporte este mes?
+                      </p>
+                      <div class="response-actions" aria-hidden="true">
+                        <svg aria-hidden="true" class="icon"><use href="#copy" /></svg
+                        ><svg aria-hidden="true" class="icon"><use href="#thumb" /></svg
+                        ><svg aria-hidden="true" class="icon thumb-down"><use href="#thumb" /></svg
+                        ><svg aria-hidden="true" class="icon"><use href="#repeat" /></svg>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="demo-composer">
+                    <input
+                      id="demo-input"
+                      type="text"
+                      maxlength="2000"
+                      autocomplete="off"
+                      aria-label="Escribe en la demostración"
+                      placeholder="¿Cuánto gasté este mes?"
+                    >
+                    <div class="composer-tools">
+                      <span class="composer-plus" aria-hidden="true">+</span
+                      ><span class="composer-app"
+                        ><svg aria-hidden="true" class="icon"><use href="#mark" /></svg
+                        >ContaMCP</span
+                      ><button
+                        class="composer-arrow"
+                        type="button"
+                        disabled
+                        aria-label="El envío está deshabilitado en esta demostración"
+                      >
+                        <svg aria-hidden="true" class="icon"><use href="#up" /></svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="compatibility">
+            <span class="compatibility-item"
+              ><img
+                class="chat-icon"
+                src="/openai-blossom-white.png"
+                width="40"
+                height="40"
+                alt=""
+              >ChatGPT</span
+            ><span class="compatibility-divider"></span
+            ><span class="compatibility-item"
+              ><svg aria-hidden="true" class="icon mcp-icon"><use href="#entries" /></svg>Clientes
+              MCP compatibles</span
+            ><span class="currency-note">MXN · USD · EUR</span>
+          </div>
+        </section>
+      </div>
+      <section class="trust-section section" data-reveal aria-labelledby="trust-title">
+        <div class="records-feature container">
+          <div class="records-copy">
+            <h2 id="trust-title">Tus finanzas no deberían depender de la memoria de tu IA.</h2>
+            <p>
+              ContaMCP guarda tus movimientos aparte de la conversación. Tu asistente puede
+              consultar los montos cuando se lo pidas.
+            </p>
+            <a
+              class="trust-link"
+              href="https://github.com/fguillen-tejera/ContaMCP#authentication-privacy-and-limitations"
+              >Cómo se guardan tus datos<svg aria-hidden="true" class="icon small">
+                <use href="#external" />
+              </svg></a
+            >
+          </div>
+          <figure
+            class="records-example"
+            aria-label="Ejemplo de cómo consultar el mismo gasto guardado en una conversación nueva de ChatGPT"
+          >
+            <div class="records-thread">
+              <div class="records-thread-heading">
+                <span class="records-client"
+                  ><img src="/openai-blossom-white.png" width="28" height="28" alt="">ChatGPT</span
+                >
+                <span>Primer chat</span>
+              </div>
+              <p class="records-question">Gasté $450 en gasolina.</p>
+              <div class="records-tool">
+                <svg aria-hidden="true" class="icon"><use href="#check" /></svg
+                ><span>Guardado en ContaMCP</span>
+              </div>
+            </div>
+            <div class="records-thread">
+              <div class="records-thread-heading">
+                <span class="records-client"
+                  ><img src="/openai-blossom-white.png" width="28" height="28" alt="">ChatGPT</span
+                >
+                <span>Chat nuevo</span>
+              </div>
+              <p class="records-question">Busca mi último gasto de gasolina.</p>
+              <div class="records-tool">
+                <svg aria-hidden="true" class="icon"><use href="#check" /></svg
+                ><span>Encontrado en ContaMCP</span>
+              </div>
+              <div class="records-entry">
+                <div>
+                  <strong>Gasolina</strong
+                  ><span class="records-entry-meta">Transporte · 24 de octubre de 2026</span>
+                </div>
+                <p>
+                  <strong id="saved-expense-amount">$450.00</strong
+                  ><span class="records-entry-currency">MXN</span>
+                </p>
+              </div>
+            </div>
+          </figure>
+        </div>
+      </section>
+
+      <section
+        class="source-section section"
+        data-reveal
+        id="open-source"
+        aria-labelledby="opensource-title"
+      >
+        <div class="open-source-section container">
+          <div class="source-copy">
+            <span class="overline"
+              ><svg aria-hidden="true" class="icon"><use href="#github" /></svg>CÓDIGO ABIERTO</span
+            >
+            <h2 id="opensource-title">Tus cuentas.<br>Tus reglas.</h2>
+            <p>
+              Instálalo en tu propia cuenta, adáptalo a tu manera o ayúdanos a mejorarlo para todos.
+            </p>
+            <div class="source-actions">
+              <a class="button button-secondary" href="https://github.com/fguillen-tejera/ContaMCP"
+                >Ver en GitHub<svg aria-hidden="true" class="icon"><use href="#external" /></svg></a
+              >
+            </div>
+            <span class="license-note"
+              >Licencia MIT <span>·</span> Hecho con Cloudflare Workers</span
+            >
+          </div>
+          <div class="terminal">
+            <div class="terminal-bar">
+              <span><span class="terminal-symbol">⌘</span> ~/contamcp</span><span>zsh</span>
+            </div>
+            <div class="terminal-body">
+              <p class="terminal-comment"># Hazlo tuyo.</p>
+              <p>
+                <span class="terminal-prompt">$</span>
+                git clone
+                <span class="terminal-path"
+                  >https://github.com/<br class="terminal-wrap">fguillen-tejera/ContaMCP.git</span
+                >
+              </p>
+              <p><span class="terminal-prompt">$</span> cd ContaMCP</p>
+              <p><span class="terminal-prompt">$</span> pnpm install</p>
+              <p><span class="terminal-prompt">$</span> pnpm db:migrate:local</p>
+              <p><span class="terminal-prompt">$</span> pnpm dev</p>
+              <p class="terminal-success">
+                <span>→</span>
+                Tus cuentas. Tu infraestructura.<span
+                  class="terminal-cursor"
+                  aria-hidden="true"
+                ></span>
+              </p>
+            </div>
+            <div class="terminal-footer">
+              <span class="status-dot"></span>Node 24+ y pnpm
+              <a href="https://github.com/fguillen-tejera/ContaMCP#local-development"
+                >Guía de instalación ↗</a
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="final-cta" id="get-started" data-reveal aria-labelledby="final-cta-title">
+        <div class="container">
+          <h2 id="final-cta-title">Lleva tus finanzas<br>desde tu chat.</h2>
+          <p>Instala ContaMCP, conecta tu asistente y registra tu primer movimiento.</p>
+          <div class="final-cta-actions">
+            <a
+              class="button button-primary"
+              href="https://github.com/fguillen-tejera/ContaMCP#deploy-your-own-instance"
+              >Empieza aquí<svg aria-hidden="true" class="icon"><use href="#arrow" /></svg></a
+            ><a
+              class="source-link"
+              href="https://github.com/fguillen-tejera/ContaMCP/blob/main/docs/authentication.md"
+              >Guía de conexión<svg aria-hidden="true" class="icon small">
+                <use href="#external" />
+              </svg></a
+            >
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer class="footer-section">
+      <div class="footer container">
+        <a class="brand" href="#main" aria-label="Inicio de ContaMCP"
+          ><svg aria-hidden="true"><use href="#mark" /></svg
+          ><span>Conta<span class="brand-muted">MCP</span></span></a
+        ><span class="footer-tagline">Herramientas financieras de código abierto para tu IA.</span>
+        <div>
+          <a href="/privacidad">Privacidad</a><a href="/soporte">Soporte</a
+          ><a href="https://github.com/fguillen-tejera/ContaMCP">GitHub</a
+          ><a href="https://github.com/fguillen-tejera/ContaMCP/tree/main/docs">Documentación</a
+          ><a href="https://github.com/fguillen-tejera/ContaMCP/blob/main/LICENSE">Licencia MIT</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

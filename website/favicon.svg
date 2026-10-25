@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">
+  <title>ContaMCP</title>
+  <rect width="40" height="40" rx="10" fill="#09090b" />
+  <g fill="none" stroke="#fafafa" stroke-width="3" stroke-linecap="round">
+    <path d="M25 11a11 11 0 1 0 0 18" />
+    <path d="M18 17h12m-12 6h9" />
+  </g>
+</svg>

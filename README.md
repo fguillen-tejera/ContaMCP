@@ -166,3 +166,11 @@ The template and dry run do not establish hosted readiness or configure a Google
 See [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), and the
 [public release checklist](docs/open-source-release.md). MIT licensed; dependencies retain
 their own MIT/Apache licenses. No third-party source code or data is redistributed.
+
+## Marketing website
+
+The standalone bilingual marketing site lives in `website/`. Run `pnpm dev:website` for the local
+preview and `pnpm build:website` to prepare its explicit public asset bundle. Firebase Hosting serves
+`https://contamcp.web.app`, including public privacy and support pages. See [website setup](website/README.md)
+for routing, synthetic demos, checks and the separate Hosting deployment command. The website does
+not connect directly to financial storage or OAuth credentials.
