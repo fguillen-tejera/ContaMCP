@@ -38,6 +38,8 @@
         "APP_ENV": "production",
         // Optional public ownership proof from the OpenAI submission portal; never an auth token.
         "OPENAI_APPS_CHALLENGE": "",
+        // Email accounts stay disabled without the API key and explicit private Firebase UID allowlist.
+        "FIREBASE_PROJECT_ID": "",
         "GOOGLE_ACCESS_MODE": "allowlist"
       },
       "d1_databases": [

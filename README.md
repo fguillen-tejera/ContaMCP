@@ -21,8 +21,9 @@ remain open gates.
 - Description/amount search, category/month reports and previous-period comparisons.
 - Explicit monthly category budgets and remembered user-approved currency defaults.
 - Readable activity history, audited restoration, bounded JSON/CSV exports and complete financial backups.
-- ChatGPT plugin and manually added ChatGPT MCP connections go straight to Google sign-in. Other
-  MCP apps use a one-button initial approval, remembered for 30 days in that browser.
+- Google sign-in, plus optional operator-provisioned Firebase email/password accounts with separate
+  ledgers. Google-only deployments keep the direct ChatGPT sign-in path; enabling email accounts
+  presents both sign-in choices. Other Google-only MCP apps remember approval for 30 days.
 - Six legacy expense tools remain expense-only. New financial tools require fresh `ledger:read` /
   `ledger:write` consent; existing expense-only grants gain no additional access.
 
@@ -132,13 +133,15 @@ See [architecture](docs/architecture.md), [local database/deployment guide](docs
 
 ## Authentication, privacy, and limitations
 
-Google proves identity; ContaMCP issues its own audience-bound OAuth tokens for MCP clients.
+Google or Firebase Authentication proves identity; ContaMCP issues its own audience-bound OAuth tokens for MCP clients.
 Registrations containing only documented ChatGPT callbacks are preapproved; other clients use
 browser-bound app consent protected against framing. See the
 [connection policy](docs/authentication.md#chatgpt-plugin-or-manually-added-mcp-server). Google ID tokens
 are signature/issuer/audience/expiry/nonce verified. Google access/refresh tokens and profile/email are not stored. Read/write scopes
 are enforced in addition to ownership. Hosted deployments default to a private subject allowlist;
-explicit public mode permits any verified Google account while preserving private ledgers.
+explicit public mode permits any verified Google account while preserving private ledgers. Firebase
+email accounts additionally require an explicit UID allowlist. They never link to Google records by
+email, and their passwords and upstream tokens are not stored in D1 or OAuth grants.
 
 Expense contents, original audit snapshots, and Google subject identifiers persist in D1. OAuth grants
 and encrypted properties live in KV. Cloudflare account operators can access stored data: this is not

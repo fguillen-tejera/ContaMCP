@@ -20,7 +20,7 @@ pnpm install --frozen-lockfile
 pnpm check
 pnpm build:website
 pnpm package:plugin
-unzip -l dist/plugins/contamcp-0.1.1.zip
+unzip -l dist/plugins/contamcp-0.1.2.zip
 ```
 
 The build archives only three explicit files from `plugins/contamcp/`, rejects symlinks in those
@@ -29,7 +29,7 @@ The ZIP has `plugin.json` and `mcp.json` at its root. Build outputs remain ignor
 Do not add `.dev.vars*`, `.wrangler/`, local Wrangler configuration, reviewer credentials, account
 identifiers, tokens, callback URLs, production exports or private recordings to the public package.
 
-The package is version `0.1.1`; this is a submission draft, not an approval claim. Change the version
+The package is version `0.1.2`; this is a submission draft, not an approval claim. Change the version
 when uploading a revised package. Update the listing fields in source rather than relying on edits
 in the portal. Keep the public display name aligned with the product; resolve any naming finding
 with the reviewer rather than advertising OpenAI endorsement.
@@ -52,16 +52,18 @@ change the best-effort service into a guaranteed financial system.
 
 ## Reviewer account and test data
 
-Use a dedicated Google account that contains only synthetic review data. Do not give reviewers
-either maintainer's account, a staging allowlisted identity, production financial data, a Google
-OAuth client secret, or a developer's ChatGPT account. The production public Google mode permits
-an ordinary new Google identity without changing owner authorization.
+Use a dedicated Firebase email/password account containing only synthetic review data. Follow
+[Firebase account setup](authentication.md#firebase-email-accounts), deploy the additive identity
+migration, and allow only that account's Firebase UID. Do not reuse a personal Google password or
+share a maintainer's Google/ChatGPT account, production data, OAuth secret or Firebase admin access.
+The demo account owns a separate ledger; matching email addresses do not link it to Google records.
 
-The reviewer must be able to sign in immediately without operator approval, inaccessible MFA,
-SMS/email codes or magic links. Google may request a challenge on an unfamiliar device even if a
-maintainer's session works. Verify the account from a fresh browser and record the exact login
-steps. If the account cannot satisfy review requirements, resolve reviewer access with OpenAI
-before submission; do not add a reviewer authentication bypass or weaken production sign-in.
+Set the reviewer Login URL to `https://contamcp.devbyfer.com/login`. Reviewers start Connect in their
+assistant, choose email on ContaMCP's authorization page and use the service demo credentials.
+They must not need operator approval, inaccessible MFA or new account setup. Test that complete
+flow in a fresh browser before submitting. The portal also offers a reviewer-email method for apps
+that implement email links/codes; ContaMCP's implemented email method is password authentication,
+so do not select the link/code option or claim it is supported.
 
 Enter credentials and private sign-in instructions only in the portal's protected Review details.
 Keep that account available for later reviews. Do not write credentials in this document, the

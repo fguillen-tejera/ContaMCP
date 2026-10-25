@@ -101,6 +101,19 @@ selecting eligible due schedules without scanning every user. A fresh database n
 Verify no migrations remain and no foreign-key violations are returned. Migrations and secrets are
 external changes; a successful packaging dry run does not validate them.
 
+For optional email/password accounts, apply `0008_spooky_flatman.sql` before deploying the new
+authentication code. It adds a provider column with a Google default without rebuilding users or
+changing financial data. Configure Firebase Email/Password on the approved no-cost plan, set
+`FIREBASE_PROJECT_ID` in private environment vars, and upload the project's Web API key and explicit
+Firebase UID allowlist as `FIREBASE_WEB_API_KEY` / `FIREBASE_ALLOWED_UIDS`. Store no account password
+in Worker bindings. Keep these values unset until the feature and isolated demo account are ready.
+See [email account setup and verification](authentication.md#firebase-email-accounts).
+
+Validate real Firebase sign-in, wrong-password denial, Google-account continuity, cross-provider
+isolation, refresh/revocation and UID removal with synthetic data. Update privacy/support pages and
+the directory package before submission. A rollback to Google-only code can leave the additive
+column in place; it disables the new Firebase grant shape and must not restore or erase D1 data.
+
 ## Gates before deployment and real financial data
 
 Record a tested commit, time window, outcome and safe evidence for every gate. Never record payloads,

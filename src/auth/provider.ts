@@ -11,12 +11,10 @@ import {
   authorizationErrorRedirect,
   insufficientScope,
 } from '@cloudflare/workers-oauth-provider';
-import { eq } from 'drizzle-orm';
-import { drizzle } from 'drizzle-orm/d1';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import { ledgerStore } from '../db/ledger';
-import { users } from '../db/schema';
+import { identityOwner } from '../db/identity';
 import type { Diagnostics } from '../diagnostics';
 import { handleMcp } from '../mcp/handler';
 import {
@@ -25,10 +23,13 @@ import {
   googleAuthorizationUrl,
   googleSubject,
 } from './google';
+import { emailCredentialsSchema, firebaseConfig, firebaseIdentity } from './firebase';
+import { grantIdentitySchema, type VerifiedIdentity } from './identity';
+import { loginPage } from './login';
 
 export type AppEnv = Omit<
   Env,
-  'APP_ORIGIN' | 'APP_ENV' | 'GOOGLE_ACCESS_MODE' | 'OPENAI_APPS_CHALLENGE'
+  'APP_ORIGIN' | 'APP_ENV' | 'GOOGLE_ACCESS_MODE' | 'OPENAI_APPS_CHALLENGE' | 'FIREBASE_PROJECT_ID'
 > & {
   APP_ORIGIN: string;
   APP_ENV: 'local' | 'staging' | 'production';
@@ -37,13 +38,15 @@ export type AppEnv = Omit<
   ALLOWED_GOOGLE_SUBJECTS?: string;
   GOOGLE_ACCESS_MODE?: string;
   OPENAI_APPS_CHALLENGE?: string;
+  FIREBASE_PROJECT_ID?: string;
+  FIREBASE_WEB_API_KEY?: string;
+  FIREBASE_ALLOWED_UIDS?: string;
   OAUTH_PROVIDER?: OAuthHelpers;
   DIAGNOSTICS?: Diagnostics;
 };
 type OAuthEnv = AppEnv & { OAUTH_PROVIDER: OAuthHelpers };
-const identitySchema = z.strictObject({ userId: z.uuid(), googleSubject: z.string().min(1) });
 const contextSchema = z.object({
-  props: identitySchema,
+  props: grantIdentitySchema,
   auth: z.object({
     token: z.string(),
     audience: z.string(),
@@ -52,10 +55,23 @@ const contextSchema = z.object({
   }),
 });
 const scopes = ['expenses:read', 'expenses:write', 'ledger:read', 'ledger:write'];
-const consentSubmissionSchema = z.strictObject({
-  handle: z.string().min(1).max(128),
-  decision: z.enum(['approve', 'deny']),
-});
+const consentSubmissionSchema = z.union([
+  z.strictObject({
+    handle: z.string().min(1).max(128),
+    decision: z.enum(['approve', 'deny']),
+  }),
+  emailCredentialsSchema.extend({
+    handle: z.string().min(1).max(128),
+    decision: z.literal('approve'),
+    provider: z.literal('firebase'),
+  }),
+]);
+
+function allowedIdentity(env: AppEnv, identity: VerifiedIdentity) {
+  return identity.provider === 'google'
+    ? allowedSubject(env, identity.subject)
+    : (firebaseConfig(env)?.allowedUids.includes(identity.subject) ?? false);
+}
 
 export function allowedSubject(env: AppEnv, subject: string): boolean {
   if (!subject.trim()) return false;
@@ -99,8 +115,47 @@ async function startGoogleSignIn(
   return new Response(null, { status: 302, headers: upstream.headers });
 }
 
+async function authorizationPage(
+  oauth: OAuthHelpers,
+  request: AuthRequest,
+  english: boolean,
+  emailSignIn: boolean,
+  signInFailed = false,
+  priorHeaders?: Headers,
+) {
+  const details = await oauth.describeConsent(request);
+  const styleNonce = crypto.randomUUID();
+  const consent = await oauth.beginConsent(request);
+  for (const cookie of priorHeaders?.getSetCookie() ?? [])
+    consent.headers.append('Set-Cookie', cookie);
+  consent.headers.set('Content-Type', 'text/html; charset=utf-8');
+  consent.headers.set(
+    'Content-Security-Policy',
+    `default-src 'none'; style-src 'nonce-${styleNonce}'; form-action 'self' https://accounts.google.com; frame-ancestors 'none'; base-uri 'none'`,
+  );
+  return new Response(
+    consentPage(details, consent.handle, styleNonce, english, emailSignIn, signInFailed),
+    { status: signInFailed ? 401 : 200, headers: consent.headers },
+  );
+}
+
 const authRoutes = new Hono<{ Bindings: OAuthEnv }>();
 authRoutes.get('/health', (c) => c.json({ status: 'ok', service: 'contamcp' }));
+authRoutes.get('/login', (c) => {
+  const nonce = crypto.randomUUID();
+  c.header(
+    'Content-Security-Policy',
+    `default-src 'none'; style-src 'nonce-${nonce}'; frame-ancestors 'none'; base-uri 'none'`,
+  );
+  return c.html(
+    loginPage(
+      c.env.APP_ORIGIN,
+      firebaseConfig(c.env) !== undefined,
+      /^en\b/i.test(c.req.header('Accept-Language') ?? ''),
+      nonce,
+    ),
+  );
+});
 authRoutes.get('/', (c) =>
   c.text('ContaMCP remote MCP endpoint: /mcp. Connect using an OAuth-capable MCP client.'),
 );
@@ -123,27 +178,17 @@ authRoutes.get('/authorize', async (c) => {
     throw new AuthorizationError('invalid_scope', {
       description: 'Request read access or matching read and write access.',
     });
-  if (await isChatGptConnection(oauth, request)) return startGoogleSignIn(oauth, request, config);
-  const remember = await rememberedConsent(config.clientSecret, c.env.APP_ORIGIN);
-  if (await oauth.isConsentRemembered(c.req.raw, request, remember))
+  const emailSignIn = firebaseConfig(c.env) !== undefined;
+  if (!emailSignIn && (await isChatGptConnection(oauth, request)))
     return startGoogleSignIn(oauth, request, config);
-  const details = await oauth.describeConsent(request);
-  const styleNonce = crypto.randomUUID();
-  const consent = await oauth.beginConsent(request);
-  consent.headers.set('Content-Type', 'text/html; charset=utf-8');
-  consent.headers.set(
-    'Content-Security-Policy',
-    // Chromium also checks form-action on the approved redirect to Google.
-    `default-src 'none'; style-src 'nonce-${styleNonce}'; form-action 'self' https://accounts.google.com; frame-ancestors 'none'; base-uri 'none'`,
-  );
-  return new Response(
-    consentPage(
-      details,
-      consent.handle,
-      styleNonce,
-      /^en\b/i.test(c.req.header('Accept-Language') ?? ''),
-    ),
-    { headers: consent.headers },
+  const remember = await rememberedConsent(config.clientSecret, c.env.APP_ORIGIN);
+  if (!emailSignIn && (await oauth.isConsentRemembered(c.req.raw, request, remember)))
+    return startGoogleSignIn(oauth, request, config);
+  return authorizationPage(
+    oauth,
+    request,
+    /^en\b/i.test(c.req.header('Accept-Language') ?? ''),
+    emailSignIn,
   );
 });
 authRoutes.post('/authorize', async (c) => {
@@ -152,7 +197,7 @@ authRoutes.post('/authorize', async (c) => {
   const oauth = c.env.OAUTH_PROVIDER;
   const form = await c.req.formData();
   const submission = consentSubmissionSchema.safeParse(Object.fromEntries(form));
-  if (!submission.success || [...form.keys()].length !== 2)
+  if (!submission.success || [...form.keys()].length !== Object.keys(submission.data).length)
     throw new AuthorizationError('invalid_request', {
       description: 'Invalid connection request. Start again from your MCP client.',
     });
@@ -160,6 +205,38 @@ authRoutes.post('/authorize', async (c) => {
   if (decision === 'deny') {
     const denied = await oauth.denyConsent(c.req.raw, handle);
     return new Response(null, { status: 302, headers: denied.headers });
+  }
+  if ('provider' in submission.data) {
+    const firebase = firebaseConfig(c.env);
+    if (!firebase) return c.json({ error: 'email_sign_in_unavailable' }, 503);
+    const approved = await oauth.approveConsent(c.req.raw, handle);
+    let identity: VerifiedIdentity;
+    try {
+      identity = await firebaseIdentity(firebase, {
+        email: submission.data.email,
+        password: submission.data.password,
+      });
+    } catch {
+      c.env.DIAGNOSTICS?.report('firebase_verification_failed');
+      return authorizationPage(
+        oauth,
+        approved.request,
+        /^en\b/i.test(c.req.header('Accept-Language') ?? ''),
+        true,
+        true,
+        approved.headers,
+      );
+    }
+    const userId = await identityOwner(c.env.DB, identity);
+    const { redirectTo } = await oauth.completeAuthorization({
+      request: approved.request,
+      userId,
+      metadata: {},
+      scope: approved.request.scope,
+      props: { userId, ...identity },
+    });
+    approved.headers.set('Location', redirectTo);
+    return new Response(null, { status: 302, headers: approved.headers });
   }
   // Approve exactly the server-stored request; the form cannot choose or expand scopes.
   const approved = await oauth.approveConsent(c.req.raw, handle, {
@@ -186,27 +263,13 @@ authRoutes.get('/auth/google/callback', async (c) => {
     return deny();
   }
   if (!allowedSubject(c.env, subject)) return deny();
-  const db = drizzle(c.env.DB);
-  await db
-    .insert(users)
-    .values({
-      id: crypto.randomUUID(),
-      googleSubject: subject,
-      createdAt: new Date().toISOString(),
-    })
-    .onConflictDoNothing({ target: users.googleSubject });
-  const user = await db
-    .select({ id: users.id })
-    .from(users)
-    .where(eq(users.googleSubject, subject))
-    .get();
-  if (!user) throw new Error('User persistence failed.');
+  const userId = await identityOwner(c.env.DB, { provider: 'google', subject });
   const { redirectTo } = await oauth.completeAuthorization({
     request: upstream.request,
-    userId: user.id,
+    userId,
     metadata: {},
     scope: upstream.request.scope,
-    props: { userId: user.id, googleSubject: subject },
+    props: { userId, googleSubject: subject },
   });
   upstream.headers.set('Location', redirectTo);
   return new Response(null, { status: 302, headers: upstream.headers });
@@ -267,7 +330,7 @@ export function oauthOptions(env: AppEnv): OAuthProviderOptions<AppEnv> {
         if (
           !verified.success ||
           verified.data.auth.userId !== verified.data.props.userId ||
-          !allowedSubject(bindings, verified.data.props.googleSubject)
+          !allowedIdentity(bindings, verified.data.props)
         ) {
           return Response.json({ error: 'invalid_identity' }, { status: 403 });
         }

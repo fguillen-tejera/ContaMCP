@@ -1,9 +1,13 @@
-# Google and remote MCP authentication
+# Identity and remote MCP authentication
 
 The code implements sign-in and token verification. You supply your own Google project and Web OAuth
 client: credentials and a subject allowlist are stored privately locally, and the Worker is deployed
 with those values uploaded as secrets. Local tests use signed synthetic Google tokens and locally
 issued OAuth tokens.
+
+An optional Firebase email/password flow supports operator-provisioned accounts with separate
+ledgers. It uses the same client-bound OAuth and scope checks; it is not a reviewer bypass.
+Google-only deployments retain their existing behavior. See [Firebase email accounts](#firebase-email-accounts).
 
 ## Configure Google
 
@@ -62,7 +66,7 @@ error hook. DCR remains a standard supported path, including the current OpenAI 
 
 ### ChatGPT: plugin or manually added MCP server
 
-Both ChatGPT connection methods use the same direct path: **Connect in ChatGPT → Google sign-in →
+In Google-only deployments, both ChatGPT connection methods use the same direct path: **Connect in ChatGPT → Google sign-in →
 back to ChatGPT**. ContaMCP preapproves delivery of authorization codes to ChatGPT's documented
 callback addresses, after validating the OAuth request and checking its stored client registration:
 - `https://chatgpt.com/connector_platform_oauth_redirect`
@@ -92,7 +96,7 @@ ordinary approval page until reviewed. See [OpenAI's callback documentation](htt
 
 ### Other MCP apps
 
-The connection screen has one **Connect with Google** action and a Cancel button. It identifies
+In Google-only deployments, the connection screen has one **Connect with Google** action and a Cancel button. It identifies
 which app is connecting, summarizes read/manage access in plain language, and shows the return host.
 There are no scope checkboxes, technical permission labels, or per-feature decisions. Clicking Connect
 approves exactly the validated request stored by the server and redirects immediately to Google.
@@ -131,6 +135,57 @@ revocation URL is invented. Account deletion/revocation UI is not included.
 The configured origin must match incoming request URLs. Unexpected hosts and browser origins are
 rejected; general cross-origin browser MCP clients are not enabled by default. Native/server clients
 without `Origin` can connect. If a specific host needs browser CORS, design an explicit allowlist first.
+
+## Firebase email accounts
+
+Email/password access is optional and disabled unless all of these values are valid:
+- `FIREBASE_PROJECT_ID` in environment-specific Wrangler vars.
+- `FIREBASE_WEB_API_KEY` stored privately for the same Firebase project.
+- `FIREBASE_ALLOWED_UIDS`: a private comma-separated list of 1-100 Firebase UIDs, never emails.
+
+Enable Firebase Authentication's Email/Password provider in your own project and provision the
+intended accounts. No registration, password-reset endpoint, or account-linking feature is exposed
+by ContaMCP. The application checks the allowed UID after verifying Firebase's signed identity;
+creating another Firebase account does not grant it ledger access. Keep the deployment on its
+approved plan; do not enable paid Identity Platform features or upgrade billing for this flow.
+
+When enabled, both ChatGPT and other MCP clients see Google and provisioned email sign-in choices
+on the existing server-bound authorization page. Google users should keep choosing Google to retain
+their ledger. The email form is explicitly for a ContaMCP password, not a Google password. Each new
+connection asks for sign-in rather than silently choosing Google through remembered consent.
+`/login` explains how to start sign-in from an OAuth-capable assistant; it does not accept passwords
+without a validated client authorization request.
+
+The browser submits email and password only over HTTPS to `/authorize`, using the OAuth provider's
+single-use, browser-bound consent handle. The Worker sends them to Firebase's fixed
+`accounts:signInWithPassword` REST endpoint. It verifies the returned ID token with Google's JWKS,
+RS256 signature, exact project audience and issuer, expiration, issued-at, authentication time,
+password sign-in provider and matching UID. Raw Firebase tokens, email addresses and passwords are
+not persisted by the Worker or passed to MCP clients. Failures use one generic message, never echo
+credentials and issue a fresh consent transaction; retry pages retain the form-compatible referrer
+policy. The existing aggregate OAuth rate limit bounds these requests as well.
+
+Migration `0008_spooky_flatman.sql` adds `users.auth_provider` with default `google`. Existing user
+UUIDs, Google subject values, financial records and issued Google grants are retained. The legacy
+`google_subject` column stores the external subject for either provider; all new identity resolution
+also checks the provider. Its existing global uniqueness is retained for compatibility: a subject
+collision denies login instead of merging accounts. Neither matching email addresses nor client
+arguments can choose an owner. Restricted background owner resolution selects only Google identities.
+
+New Firebase grants carry their provider and UID; legacy Google grant properties still validate.
+Removing a Firebase UID from the allowlist or disabling Firebase configuration denies subsequent
+MCP requests for that identity. Rotating a Firebase password alone does not revoke existing
+ContaMCP tokens; revoke them separately. Existing standing recurring instructions are not canceled
+by disconnecting or changing sign-in credentials.
+
+For a reviewer, provision an independent Firebase demo account containing only synthetic records
+and supply its service credentials in OpenAI's private review form. A Firebase password authenticates
+that service account and does not grant access to a Google account. Keep Google account passwords,
+Firebase admin credentials and OAuth client secrets out of reviewer credentials.
+
+References: [Firebase password sign-in](https://firebase.google.com/docs/reference/rest/auth#section-sign-in-email-password),
+[ID token verification](https://firebase.google.com/docs/auth/admin/verify-id-tokens),
+[Firebase limits](https://firebase.google.com/docs/auth/limits).
 
 ## External verification still required
 
