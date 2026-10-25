@@ -60,7 +60,7 @@ pnpm build
 Health returns `ok`; the unauthenticated MCP request returns `401` and OAuth discovery information.
 Private tools remain inaccessible without OAuth. There is no development authentication bypass.
 All resource identifiers in `wrangler.jsonc` are intentionally placeholders: zero values for local
-development and placeholder staging values until you substitute your own (see
+development and placeholder staging/production values until you substitute your own (see
 [deploy your own instance](#deploy-your-own-instance)).
 
 For automatic recurring recording, also configure an explicit private `ALLOWED_GOOGLE_SUBJECTS`
@@ -122,7 +122,7 @@ Registrations containing only documented ChatGPT callbacks are preapproved; othe
 browser-bound app consent protected against framing. See the
 [connection policy](docs/authentication.md#chatgpt-plugin-or-manually-added-mcp-server). Google ID tokens
 are signature/issuer/audience/expiry/nonce verified. Google access/refresh tokens and profile/email are not stored. Read/write scopes
-are enforced in addition to ownership. A subject allowlist is required for staging and optional in local development.
+are enforced in addition to ownership. A subject allowlist is required for staging/production and optional in local development.
 
 Expense contents, original audit snapshots, and Google subject identifiers persist in D1. OAuth grants
 and encrypted properties live in KV. Cloudflare account operators can access stored data: this is not
@@ -155,6 +155,11 @@ Free plan; free-plan CPU limits and OAuth/KV write rates still need hosted measu
 
 For a real end-to-end check, run the [authenticated MCP acceptance client](docs/mcp-integration-testing.md)
 against your deployment.
+
+For an allowlisted production pilot, follow the [production rollout guide](docs/production.md).
+`env.production` has separate resource placeholders and rate-limit namespaces; its Cron trigger stays
+off until rollout validation is complete. `pnpm build:production` checks packaging locally and in CI.
+The template and dry run do not establish hosted readiness or configure a Google OAuth client.
 
 ## Contributing and license
 

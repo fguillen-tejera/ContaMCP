@@ -28,7 +28,7 @@ import {
 
 export type AppEnv = Omit<Env, 'APP_ORIGIN' | 'APP_ENV'> & {
   APP_ORIGIN: string;
-  APP_ENV: 'local' | 'staging';
+  APP_ENV: 'local' | 'staging' | 'production';
   GOOGLE_CLIENT_ID?: string;
   GOOGLE_CLIENT_SECRET?: string;
   ALLOWED_GOOGLE_SUBJECTS?: string;

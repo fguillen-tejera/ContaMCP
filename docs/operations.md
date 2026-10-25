@@ -4,6 +4,10 @@ This guide covers local database safety, hosted operational controls, recovery, 
 plan expectations. All hosted changes, including provisioning, migrations, secret changes, rollback
 and restore, should follow your own deployment approval process.
 
+See [production setup and rollout](production.md) for the isolated production environment. The
+controls below apply to both hosted environments; commands shown with `--env staging` target staging
+only. Use the approved production config and `--env production` explicitly for production operations.
+
 ## Local financial extension rollout
 
 The current source includes additive provenance migration `0005_loud_spyke.sql`, automatic recurring

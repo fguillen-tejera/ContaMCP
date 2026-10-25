@@ -22,9 +22,12 @@ issued OAuth tokens.
    commands after deployment. Never paste credentials into issues, chat transcripts, shell command
    arguments, or committed config.
 5. Set `ALLOWED_GOOGLE_SUBJECTS` to the consenting testers' comma-separated stable `sub` values.
-   It is mandatory in staging, checked at sign-in and every authenticated request. Empty/unset allows
+   It is mandatory in staging and production, checked at sign-in and every authenticated request. Empty/unset allows
    verified Google accounts only in the local environment. Neither test identity seeding nor a
    bypass is included in the Worker.
+
+Production uses an isolated Google Web OAuth client and the final HTTPS callback. Follow the
+[production setup and rollout guide](production.md); staging credentials and grants are not promoted.
 
 Google determines consent verification requirements for your application. A typical small pilot uses
 billing disabled, External/Testing consent configuration, one Web OAuth client with only the Worker

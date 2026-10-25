@@ -47,4 +47,5 @@ jobs:
       - run: pnpm audit
       - run: pnpm build
       - run: pnpm build:staging
+      - run: pnpm build:production
       - run: pnpm test:mcp:staging --help
