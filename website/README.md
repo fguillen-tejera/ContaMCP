@@ -134,3 +134,9 @@ directory contains no repository configuration, credentials, documentation or le
 OAuth branding can use `https://contamcp.web.app/en` as its homepage and
 `https://contamcp.web.app/privacy` as its privacy-policy URL. Publishing the website does not deploy
 the MCP Worker or change authentication policy.
+
+## Hosted MCP address
+
+The hosted server uses `https://contamcp.devbyfer.com/mcp`. Privacy and support pages must use
+this canonical address. Firebase continues to serve the marketing/policy pages at `contamcp.web.app`;
+it does not proxy MCP traffic. Existing clients must reconnect after the hostname change.

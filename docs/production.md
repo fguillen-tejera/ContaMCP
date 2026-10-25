@@ -9,6 +9,11 @@ Publishing this source and passing local tests do not complete the hosted gates 
 
 ## Environment and identity
 
+The public service uses `https://contamcp.devbyfer.com/mcp`. Its Google callback is
+`https://contamcp.devbyfer.com/auth/google/callback`; the marketing site remains at
+`https://contamcp.web.app`. The generic resource identifiers below are still placeholders for people
+deploying their own instance.
+
 `env.production` in `wrangler.jsonc` explicitly binds a separate D1 database, OAuth KV namespace and
 rate-limit namespaces (`23001` / `23002`). The IDs and account are placeholders. Never substitute
 staging's IDs or copy its data, grants or credentials. Cloudflare bindings, vars and secrets must be
@@ -156,6 +161,43 @@ token does not cancel an existing standing schedule.
 Record the final deployment/version IDs, trigger state and safe check results. Keep invocation logs
 and tracing disabled as described in operations; query redaction and fixed application diagnostics
 remain enabled. Continue monitoring aggregate CPU, errors and resource quotas after launch.
+
+## Change the production hostname
+
+Treat a hostname change as an OAuth resource migration, not a redirect or a new ledger deployment.
+For the public instance, the canonical origin is `https://contamcp.devbyfer.com` and the resource is
+`https://contamcp.devbyfer.com/mcp`.
+1. Capture the current Worker version, D1 bookmark, deployed vars/bindings and existing Google
+   callback. Keep the same Worker, D1, OAuth KV, rate-limit namespaces, public/restricted access
+   policy and hourly Cron. No data copy, schema migration or new secret is needed for a hostname.
+2. Check that the chosen hostname is unused in an active Cloudflare zone you control. Add the new
+   exact `/auth/google/callback` URI to the existing production Google client before switching the
+   Worker. Add the new domain to Google branding's authorized domains while retaining the marketing
+   homepage/privacy links. Leave other clients and domains alone.
+3. In the ignored production config, set `APP_ORIGIN` to the new HTTPS origin, `workers_dev: false`,
+   and a Custom Domain route. Use the approved zone identifier in the real config. For example:
+
+   ```json
+   {
+     "routes": [{ "pattern": "mcp.example.com", "custom_domain": true }]
+   }
+   ```
+
+   See [Cloudflare Custom Domains](https://developers.cloudflare.com/workers/configuration/routing/custom-domains/).
+   Dry-run the actual config, then deploy the reviewed revision. Existing secrets are retained;
+   never create replacement resources by omitting binding IDs.
+4. Verify DNS/TLS, health, canonical OAuth/resource discovery, anonymous/forged rejection, trusted
+   origins and a real production Google login with synthetic data. Verify owner isolation, read-only
+   permissions, refresh and revocation. Confirm the old hostname no longer serves the MCP API and
+   that only the new callback remains on the dedicated production Google client after validation.
+5. Update the README, connection docs and the marketing site's privacy/support links, then publish
+   the updated website. Tell users to reconnect their existing MCP client with the new URL. Google
+   subjects still resolve to the same user UUIDs and ledger. Access/refresh grants and remembered
+   approvals are bound to their original audience/origin and are not migrated by changing DNS.
+
+Record the new version, hostname, trigger state and check results. To roll back a failed cutover,
+restore the captured config and Google callback and redeploy the known revision with the same
+bindings. Do not restore D1 or delete OAuth KV for a routing failure.
 
 ## Stop and recover
 
