@@ -9,6 +9,9 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Explicit public Google signup alongside the default allowlist mode, with unchanged ownership/scope
+  checks and bounded recurring processing for newly registered users. Migration 0007 indexes due schedules.
+
 - A CPU-only staging workload and bounded hosted throttle observations using safe mutation replays,
   location diagnostics and independent cooldown recovery checks.
 - Explicit production environment support, isolated binding templates, fail-closed OAuth/scheduled

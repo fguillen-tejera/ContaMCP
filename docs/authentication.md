@@ -21,13 +21,21 @@ issued OAuth tokens.
 4. For a hosted deployment, configure the actual HTTPS origin and use Wrangler's interactive secret
    commands after deployment. Never paste credentials into issues, chat transcripts, shell command
    arguments, or committed config.
-5. Set `ALLOWED_GOOGLE_SUBJECTS` to the consenting testers' comma-separated stable `sub` values.
-   It is mandatory in staging and production, checked at sign-in and every authenticated request. Empty/unset allows
-   verified Google accounts only in the local environment. Neither test identity seeding nor a
-   bypass is included in the Worker.
+5. Choose `GOOGLE_ACCESS_MODE` in the deployment's Wrangler vars. `allowlist` (the default, including
+   when unset) requires `ALLOWED_GOOGLE_SUBJECTS` for hosted access: comma-separated stable Google
+   `sub` values, checked at sign-in and every authenticated request. `public` permits any verified
+   Google account without this list. Emptying the list never opens hosted access by itself. Invalid
+   mode values fail closed. Local interactive OAuth keeps its existing empty-list behavior. Neither
+   test identity seeding nor a bypass is included in the Worker.
 
 Production uses an isolated Google Web OAuth client and the final HTTPS callback. Follow the
 [production setup and rollout guide](production.md); staging credentials and grants are not promoted.
+
+For public signup, use an External Google audience and publish the production project's OAuth app.
+Only `openid` is requested from Google; the financial scopes belong to ContaMCP. Google's
+[basic-sign-in exception](https://support.google.com/cloud/answer/15549945) also permits these scopes
+without a testing-user restriction. Publishing/brand verification and managed-account restrictions
+remain Google's controls. Review the actual consent screen and support/privacy information.
 
 Google determines consent verification requirements for your application. A typical small pilot uses
 billing disabled, External/Testing consent configuration, one Web OAuth client with only the Worker
@@ -65,7 +73,7 @@ trust. Registrations with mixed ChatGPT/non-ChatGPT destinations use ordinary ap
 
 This is an explicit trust policy for ChatGPT as the authorization-code recipient, not an assertion
 that a browser navigation or arbitrary network request originated from OpenAI. Google authentication,
-the subject allowlist, issuer/nonce verification, client-bound PKCE token exchange, audience checks,
+the configured account-access policy, issuer/nonce verification, client-bound PKCE token exchange, audience checks,
 and tool scope/ownership checks all remain required. The shortcut creates no browser approval cookie
 and no user/ledger record before verified Google sign-in. Each attempt gets fresh Google state,
 nonce, verifier and a browser-bound upstream cookie.
@@ -97,7 +105,7 @@ app identity. Clearing site cookies forgets remembered approvals.
 The OAuth provider stores approvals in its bounded `__Host-oauth-approvals` cookie (Secure, HttpOnly,
 SameSite=Lax). It contains no Google identity or financial records. Because identity is learned only
 after Google sign-in, approvals belong to the browser, not a particular Google account; Google identity
-and the subject allowlist are still checked on every login. This cookie never supplies ledger identity
+and the configured account-access policy are still checked on every login. This cookie never supplies ledger identity
 or an access token. A separate, origin-bound HMAC signing key is derived with HKDF-SHA-256 from the
 existing Google client secret; no additional secret setup is needed. Rotating that secret invalidates
 remembered approvals. Revoking a token does not erase browser approvals; reconnecting still requires
@@ -160,7 +168,9 @@ against a deployed Worker with two distinct allowlisted Google accounts.
 New user-established schedules default to automatic recording. Ledger write consent describes
 management of automatic recurring records; the creation result and tool instructions make the
 standing behavior explicit. Existing manual schedules are preserved. The internal Cron handler
-resolves persisted users through the private verified-subject allowlist and then scopes every read
-and mutation to that owner. It cannot accept an owner ID through an HTTP argument or header.
-Revoking a client token does not cancel an existing standing schedule; pause/cancel it or remove the
-owner from the operational allowlist to stop future automatic recording.
+uses the private verified-subject allowlist in restricted mode. In public mode it selects persisted
+owners of up to five eligible due schedules, ordered by scheduled date and ID, rather than scanning
+every registered user. Every read and mutation remains owner-scoped; an HTTP argument or header
+cannot choose an owner. Revoking a client token does not cancel a standing schedule. Pause/cancel it
+to stop future automatic recording. Removing a subject from the operational allowlist also stops it
+in restricted mode, but has no effect in public mode.

@@ -63,8 +63,10 @@ All resource identifiers in `wrangler.jsonc` are intentionally placeholders: zer
 development and placeholder staging/production values until you substitute your own (see
 [deploy your own instance](#deploy-your-own-instance)).
 
-For automatic recurring recording, also configure an explicit private `ALLOWED_GOOGLE_SUBJECTS`
-allowlist; the job runs only for these owners and fails closed without it. Existing manual schedules
+For automatic recurring recording in default allowlist mode, configure private `ALLOWED_GOOGLE_SUBJECTS`.
+To accept any verified Google account, set `GOOGLE_ACCESS_MODE: "public"` in deployment vars. Ledgers
+stay private; the job selects users with eligible automatic schedules and keeps its five-occurrence
+budget per run. Existing manual schedules
 stay manual until explicitly enabled with a next billing date. See [recurring job behavior](docs/financial-workflows.md#job-authorization-limits-and-recovery).
 
 For interactive Google login, copy `.dev.vars.example` to `.dev.vars`, supply your own OAuth credentials,
@@ -122,7 +124,8 @@ Registrations containing only documented ChatGPT callbacks are preapproved; othe
 browser-bound app consent protected against framing. See the
 [connection policy](docs/authentication.md#chatgpt-plugin-or-manually-added-mcp-server). Google ID tokens
 are signature/issuer/audience/expiry/nonce verified. Google access/refresh tokens and profile/email are not stored. Read/write scopes
-are enforced in addition to ownership. A subject allowlist is required for staging/production and optional in local development.
+are enforced in addition to ownership. Hosted deployments default to a private subject allowlist;
+explicit public mode permits any verified Google account while preserving private ledgers.
 
 Expense contents, original audit snapshots, and Google subject identifiers persist in D1. OAuth grants
 and encrypted properties live in KV. Cloudflare account operators can access stored data: this is not
@@ -156,7 +159,7 @@ Free plan; free-plan CPU limits and OAuth/KV write rates still need hosted measu
 For a real end-to-end check, run the [authenticated MCP acceptance client](docs/mcp-integration-testing.md)
 against your deployment.
 
-For an allowlisted production pilot, follow the [production rollout guide](docs/production.md).
+For production with restricted or public Google signup, follow the [production rollout guide](docs/production.md).
 `env.production` has separate resource placeholders and rate-limit namespaces; its Cron trigger stays
 off until rollout validation is complete. `pnpm build:production` checks packaging locally and in CI.
 The template and dry run do not establish hosted readiness or configure a Google OAuth client.

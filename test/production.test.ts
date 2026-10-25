@@ -32,6 +32,11 @@ describe('production boundaries', () => {
     { GOOGLE_CLIENT_ID: ' ' },
     { GOOGLE_CLIENT_SECRET: ' ' },
     { ALLOWED_GOOGLE_SUBJECTS: ', ,' },
+    { GOOGLE_ACCESS_MODE: 'public', GOOGLE_CLIENT_ID: undefined },
+    { GOOGLE_ACCESS_MODE: 'public', GOOGLE_CLIENT_SECRET: ' ' },
+    { GOOGLE_ACCESS_MODE: '' },
+    { GOOGLE_ACCESS_MODE: 'PUBLIC' },
+    { GOOGLE_ACCESS_MODE: 'unknown' },
   ])('closes OAuth entry points when configuration is incomplete: %j', async (overrides) => {
     const env = production(overrides);
     const limit = vi.spyOn(env.OAUTH_RATE_LIMIT, 'limit');
@@ -127,6 +132,83 @@ describe('production boundaries', () => {
     expect(await env.DB.prepare('SELECT COUNT(*) n FROM expense_mutations').first('n')).toBe(3);
   });
 
+  it('opens signup explicitly while preserving private ledgers and scope checks', async () => {
+    const env = production({ GOOGLE_ACCESS_MODE: 'public', ALLOWED_GOOGLE_SUBJECTS: undefined });
+    const a = await principal(env);
+    const b = await principal(env);
+    expect(allowedSubject(env, a.subject)).toBe(true);
+    expect(allowedSubject(env, '')).toBe(false);
+    expect(allowedSubject({ ...env, GOOGLE_ACCESS_MODE: 'unknown' }, a.subject)).toBe(false);
+    expect(
+      await runScenarios((account) => connect(env, account === 'A' ? a.token : b.token)),
+    ).toEqual({ scenarios: 12, syntheticRecordsCreated: 2 });
+    const reader = await principal(env, ['expenses:read'], a);
+    const client = await connect(env, reader.token);
+    try {
+      await runReadOnlyScenario(client);
+    } finally {
+      await client.close();
+    }
+    for (const mode of ['allowlist', 'unknown']) {
+      expect(
+        (
+          await dispatch(
+            new Request(`${env.APP_ORIGIN}/mcp`, {
+              headers: { Authorization: `Bearer ${a.token}` },
+            }),
+            { ...env, GOOGLE_ACCESS_MODE: mode },
+          )
+        ).status,
+      ).toBe(403);
+    }
+    expect((await dispatch(new Request(`${env.APP_ORIGIN}/mcp`), env)).status).toBe(401);
+  });
+
+  it('processes public users standing schedules within the existing five-occurrence budget', async () => {
+    const env = production({ GOOGLE_ACCESS_MODE: 'public', ALLOWED_GOOGLE_SUBJECTS: undefined });
+    const store = ledgerStore(env.DB);
+    const now = new Date('2026-10-24T06:05:00Z');
+    const due = [];
+    for (let i = 0; i < 7; i++) {
+      const user = await principal(env);
+      const schedule = await createRecurring(
+        store,
+        user.userId,
+        {
+          description: `SYNTHETIC public schedule ${i}`,
+          type: 'expense',
+          amount: '0.19',
+          currency: 'EUR',
+          category: 'other',
+          interval: 'monthly',
+          firstDate: '2026-10-24',
+          idempotencyKey: crypto.randomUUID(),
+        },
+        now,
+      );
+      due.push({ user, schedule });
+    }
+    const ctx = createExecutionContext();
+    worker.scheduled(createScheduledController({ scheduledTime: now }), env, ctx);
+    await waitOnExecutionContext(ctx);
+    expect(await env.DB.prepare('SELECT COUNT(*) n FROM expenses').first('n')).toBe(5);
+    const retry = createExecutionContext();
+    worker.scheduled(createScheduledController({ scheduledTime: now }), env, retry);
+    await waitOnExecutionContext(retry);
+    expect(await env.DB.prepare('SELECT COUNT(*) n FROM expenses').first('n')).toBe(7);
+    expect(await env.DB.prepare('SELECT COUNT(*) n FROM expense_mutations').first('n')).toBe(7);
+    for (const { user, schedule } of due) {
+      expect(await store.findOccurrence(user.userId, schedule.id, schedule.nextDate)).toMatchObject(
+        {
+          amount: '0.19',
+          paymentStatus: 'unverified',
+          source: 'recurring',
+        },
+      );
+      expect(await store.findRecurring(user.userId, schedule.id)).toMatchObject({ version: 2 });
+    }
+  });
+
   it('fails scheduled recording closed and records only allowlisted owners once after configuration', async () => {
     const env = production();
     const a = await principal(env);
@@ -162,6 +244,8 @@ describe('production boundaries', () => {
     }
     const log = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const invalid: Partial<AppEnv>[] = [
+      { GOOGLE_ACCESS_MODE: 'unknown' },
+      { GOOGLE_ACCESS_MODE: 'public', GOOGLE_CLIENT_SECRET: undefined },
       { GOOGLE_CLIENT_ID: undefined },
       { GOOGLE_CLIENT_SECRET: ' ' },
       { ALLOWED_GOOGLE_SUBJECTS: '' },

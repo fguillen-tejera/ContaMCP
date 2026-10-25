@@ -9,7 +9,7 @@ import {
 import { SignJWT, exportJWK, generateKeyPair } from 'jose';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
-import { oauthOptions } from '../src/auth/provider';
+import { type AppEnv, oauthOptions } from '../src/auth/provider';
 import { googleSubject } from '../src/auth/google';
 import { isChatGptConnection } from '../src/auth/chatgpt';
 import { bindings, connect, dispatch, expenseInput, principal } from './helpers';
@@ -65,9 +65,15 @@ function mockGoogle(token: string) {
 }
 
 async function beginAuthorization(
-  options: { scope?: string; language?: string; redirectUris?: string[]; clientName?: string } = {},
+  options: {
+    scope?: string;
+    language?: string;
+    redirectUris?: string[];
+    clientName?: string;
+    env?: AppEnv;
+  } = {},
 ) {
-  const env = config();
+  const env = options.env ?? config();
   const oauth = getOAuthApi(oauthOptions(env), env);
   const client = await oauth.createClient({
     redirectUris: options.redirectUris ?? ['https://client.example/callback'],
@@ -612,10 +618,31 @@ describe('OAuth and verified Google identity', () => {
       direct: true,
       scope: 'ledger:read ledger:write',
     },
+    {
+      name: 'public production signup without an allowlist',
+      redirectUri: 'https://chatgpt.com/connector_platform_oauth_redirect',
+      direct: true,
+      scope: 'ledger:read ledger:write',
+      publicSignup: true,
+    },
   ])(
     'completes $name, Google sign-in, PKCE exchange and an authenticated MCP write',
-    async ({ redirectUri, direct, scope }) => {
-      const options = { redirectUris: [redirectUri], scope };
+    async ({ redirectUri, direct, scope, publicSignup }) => {
+      const options = {
+        redirectUris: [redirectUri],
+        scope,
+        ...(publicSignup
+          ? {
+              env: {
+                ...config(),
+                APP_ENV: 'production' as const,
+                APP_ORIGIN: 'https://production.example',
+                GOOGLE_ACCESS_MODE: 'public',
+                ALLOWED_GOOGLE_SUBJECTS: '',
+              },
+            }
+          : {}),
+      };
       const started = direct
         ? { flow: 'google' as const, ...(await beginAuthorization(options)) }
         : { flow: 'approval' as const, ...(await startAuthorization(options)) };

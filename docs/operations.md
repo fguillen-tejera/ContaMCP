@@ -183,15 +183,20 @@ Mexico City calendar and processes at most five due occurrences per run, with st
 keys and atomic ledger/audit/schedule writes. This is automatic bookkeeping, not payment execution.
 Apply migration 0005 before enabling the new Worker. Existing manual schedules do not switch modes.
 
-The private `ALLOWED_GOOGLE_SUBJECTS` must explicitly list the owners eligible for background work;
-this is mandatory for scheduled processing even locally. Missing configuration fails closed.
+In the default allowlist mode, private `ALLOWED_GOOGLE_SUBJECTS` explicitly lists owners eligible
+for background work; this is mandatory even locally. Missing configuration fails closed. With
+`GOOGLE_ACCESS_MODE: "public"`, owners come from up to five eligible due schedules, ordered by
+scheduled date and ID. This avoids enumerating all registered users. Migration 0007 adds the index
+for this selection. Both modes retain the five-occurrence run budget and owner-scoped writes.
 Paused/manual schedules and duplicate-blocked schedules are excluded. A failed job can be retried
 without duplicate financial writes; successful occurrences remain recorded if a later one fails.
 Check fixed `automatic_recording_failed` diagnostics and aggregate CPU/errors without dumping data.
 A `needsReview` schedule needs owner confirmation/linking or an explicit skip. No automatic merge or
-delete occurs. Removing an owner from the operational allowlist stops their future scheduled work.
+delete occurs. Removing an owner from the operational allowlist stops future scheduled work only
+in allowlist mode. In public mode, pause/cancel their standing schedules to stop them.
 
-Before a restore, stop both client writes and the Cron Trigger or close the job's owner allowlist.
+Before a restore, stop both client writes and the Cron Trigger. To close public access, switch to
+allowlist mode with a nonmatching subject sentinel; changing the list alone is insufficient.
 Restoring ledger, financial receipts, schedule state and planning receipts must be coordinated:
 restoring a past due date without its occurrence receipt could cause another posting. A code rollback
 to the earlier version stops automatic processing but does not undo already recorded charges; the

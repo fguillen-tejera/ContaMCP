@@ -6,7 +6,7 @@ import {
 } from 'cloudflare:test';
 import { z } from 'zod';
 import { ledgerStore, verifyAuditChain } from '../src/db/ledger';
-import { automaticRecordingOwners } from '../src/db/automatic';
+import { automaticRecordingOwners, publicAutomaticRecordingOwners } from '../src/db/automatic';
 import { createExpenseSchema, expenseSchema, todayInMexico } from '../src/domain/expense';
 import { requestHash } from '../src/domain/mutation';
 import { recurringSchema } from '../src/domain/planning';
@@ -51,6 +51,35 @@ afterEach(() => {
 });
 
 describe('automatic recurring recording', () => {
+  it('selects only eligible public schedules at the Mexico City date boundary', async () => {
+    const { env, user, store } = await account();
+    await createRecurring(store, user.userId, input(), now);
+    const other = await principal(env);
+    await createRecurring(store, other.userId, input({ automatic: false }), now);
+    await createRecurring(store, other.userId, input({ firstDate: '2026-10-25' }), now);
+    const paused = await createRecurring(store, other.userId, input(), now);
+    await cancelRecurring(
+      store,
+      other.userId,
+      {
+        recurringId: paused.id,
+        expectedVersion: 1,
+        idempotencyKey: key(),
+      },
+      now,
+    );
+    expect(await publicAutomaticRecordingOwners(env.DB, new Date('2026-10-24T05:59:59Z'))).toEqual(
+      [],
+    );
+    expect(await publicAutomaticRecordingOwners(env.DB, now)).toEqual([user.userId]);
+    const query = await env.DB.prepare(`EXPLAIN QUERY PLAN SELECT owner_id FROM recurring_entries
+      WHERE json_extract(data, '$.active') = 1 AND json_extract(data, '$.automatic') = 1
+      AND COALESCE(json_extract(data, '$.needsReview'), 0) = 0
+      AND json_extract(data, '$.nextDate') <= ? ORDER BY json_extract(data, '$.nextDate'), id LIMIT 5`)
+      .bind('2026-10-24')
+      .all<{ detail: string }>();
+    expect(query.results.some((row) => row.detail.includes('recurring_automatic_due'))).toBe(true);
+  });
   it('reuses calendar formatting without caching the date across midnight or year boundaries', () => {
     expect(
       [

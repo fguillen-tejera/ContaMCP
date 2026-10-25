@@ -35,7 +35,8 @@
       "triggers": { "crons": [] },
       "vars": {
         "APP_ORIGIN": "https://contamcp-production.YOUR_SUBDOMAIN.workers.dev",
-        "APP_ENV": "production"
+        "APP_ENV": "production",
+        "GOOGLE_ACCESS_MODE": "allowlist"
       },
       "d1_databases": [
         {
@@ -68,7 +69,8 @@
       "triggers": { "crons": ["0 * * * *"] },
       "vars": {
         "APP_ORIGIN": "https://contamcp-staging.YOUR_SUBDOMAIN.workers.dev",
-        "APP_ENV": "staging"
+        "APP_ENV": "staging",
+        "GOOGLE_ACCESS_MODE": "allowlist"
       },
       "d1_databases": [
         {
