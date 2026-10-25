@@ -45,6 +45,7 @@
     "test:mcp:staging": "node scripts/mcp-staging.mts",
     "dev:website": "node --watch scripts/website.mts",
     "build:website": "node scripts/build-website.mts",
+    "package:plugin": "node scripts/package-plugin.mts",
     "test:website": "node --test scripts/website-locale-check.mts"
   },
   "dependencies": {

@@ -29,6 +29,14 @@
     ],
     "rewrites": [
       {
+        "source": "/terms",
+        "destination": "/terms.html"
+      },
+      {
+        "source": "/terminos",
+        "destination": "/terminos.html"
+      },
+      {
         "source": "/es",
         "destination": "/index.html"
       },

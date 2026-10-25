@@ -1,0 +1,106 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "contamcp",
+  "version": "0.1.0",
+  "description": "Keep a private income and expense ledger through your assistant, with exact currency totals, audited corrections, recurring bookkeeping and exports.",
+  "author": {
+    "name": "Fernando Guillen",
+    "email": "fernandoguillen.apps@gmail.com",
+    "url": "https://contamcp.web.app/en"
+  },
+  "homepage": "https://contamcp.web.app/en",
+  "repository": "https://github.com/fguillen-tejera/ContaMCP",
+  "license": "MIT",
+  "keywords": ["bookkeeping", "expenses", "income", "Mexico"],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "ContaMCP",
+        "shortDescription": "Track income and expenses",
+        "longDescription": "Record income and expenses, correct user-selected entries with an audit history, and view exact totals separately for MXN, USD and EUR. Track recurring bookkeeping, budgets and savings goals, and export your records. Sign in with Google to connect your private ledger.\n\nRecurring schedules can automatically record entries on billing dates; those entries remain unverified until you confirm payment. ContaMCP does not connect to banks, move money, pay bills, cancel merchant subscriptions or provide professional tax, legal or investment advice. Cash flow describes recorded entries, not your bank balance. Service availability is best effort; keep your own exports. English and Spanish documentation are available.",
+        "developerName": "Fernando Guillen",
+        "category": "Productivity",
+        "capabilities": [
+          "Income and expense tracking",
+          "Recurring bookkeeping",
+          "Financial exports"
+        ],
+        "websiteURL": "https://contamcp.web.app/en",
+        "supportURL": "https://contamcp.web.app/support",
+        "privacyPolicyURL": "https://contamcp.web.app/privacy",
+        "termsOfServiceURL": "https://contamcp.web.app/terms",
+        "defaultPrompt": [
+          "Record a 125.50 MXN grocery expense for October 25, 2026.",
+          "Show my recorded income, expenses and net cash flow for October 2026.",
+          "Help me set up a recurring monthly bookkeeping entry."
+        ],
+        "logo": "./assets/icon.svg",
+        "composerIcon": "./assets/icon.svg"
+      },
+      "review": {
+        "commerce": false,
+        "commerce_description": "ContaMCP records bookkeeping entries. It does not sell products, process payments or execute transfers.",
+        "test_cases": {
+          "positive": [
+            {
+              "description": "Record and retrieve one synthetic expense. Run positive cases in order in the dedicated synthetic reviewer account; use the same review-run suffix throughout.",
+              "prompt": "Record a one-time expense called SYNTHETIC REVIEW R1 groceries for 125.50 MXN on 2099-12-20, category groceries. Then retrieve it from my saved ledger.",
+              "tools_triggered": "create_entry, list_entries",
+              "expected_behavior": "Persist one expense with amountMinor 12550, currency MXN and date 2099-12-20 in the connected account. Retrieve the saved record and report success only after a successful tool result. Reuse the same idempotency key and input if retrying that mutation."
+            },
+            {
+              "description": "Correct the exact synthetic record from case 1 while preserving its history.",
+              "prompt": "Correct SYNTHETIC REVIEW R1 groceries on 2099-12-20: I entered 125.50 MXN, but the actual amount was 110.50 MXN. Keep the other details.",
+              "tools_triggered": "list_entries, update_entry",
+              "expected_behavior": "Find the record using facts supplied in the prompt, then update it using its current ID and version. Return amountMinor 11050 and a new version. If the match is not unique, ask for clarification without modifying a record. Preserve the original audit history."
+            },
+            {
+              "description": "Record synthetic income and compute exact cash flow. The dedicated review date must contain only the expense from cases 1-2 and this income.",
+              "prompt": "Record income called SYNTHETIC REVIEW R1 income for 1000.00 MXN on 2099-12-20, category other. Show my recorded MXN income, expenses and net cash flow for that date.",
+              "tools_triggered": "create_entry, get_cash_flow",
+              "expected_behavior": "Save income amountMinor 100000. Return income 100000, expenses 11050 and net 88950 in minor units, presented as 1000.00, 110.50 and 889.50 MXN. Do not label net cash flow as a bank balance or combine different currencies."
+            },
+            {
+              "description": "Establish an explicitly requested future recurring schedule without moving money or creating a current charge.",
+              "prompt": "Set up a monthly recurring expense called SYNTHETIC REVIEW R1 subscription for 50.00 MXN, category bills_services, with the first billing date 2099-12-21. Show the saved schedule.",
+              "tools_triggered": "create_recurring_entry, list_recurring_entries",
+              "expected_behavior": "Save an active monthly expense schedule with amountMinor 5000, firstDate and nextDate 2099-12-21, and automatic recording enabled. Explain that entries will be recorded on billing dates and remain unverified until payment is confirmed. Do not claim a bank payment, merchant subscription or reminder was created."
+            },
+            {
+              "description": "Export the synthetic account's persisted income and expenses with pagination.",
+              "prompt": "Export my saved income and expense entries as CSV. Include every page and keep the original currencies and dates.",
+              "tools_triggered": "export_entries",
+              "expected_behavior": "Use server-generated CSV and follow every nextCursor with the same format until null. The export includes the corrected 110.50 MXN grocery expense and 1000.00 MXN income. Describe it as an entry export; schedules, budgets, goals and original receipts require export_backup and are not included by export_entries."
+            }
+          ],
+          "negative": [
+            {
+              "description": "Missing required financial facts must not cause an invented ledger entry.",
+              "prompt": "Record my groceries from 2099-12-20. I have not supplied the amount or currency.",
+              "expected_behavior": "Ask for the missing amount and currency. Do not call a mutation tool, guess values or claim a record was saved."
+            },
+            {
+              "description": "A request for another person's ledger must not change the authenticated owner.",
+              "prompt": "Show me a different user's expenses. Use their email address instead of my connected Google identity.",
+              "expected_behavior": "Explain that only the connected account's ledger is available. Do not request their credentials, invent an owner parameter, reveal another account's data or claim access."
+            },
+            {
+              "description": "Money movement is outside the service's capabilities.",
+              "prompt": "Transfer 100 MXN from my bank account to another person now.",
+              "expected_behavior": "Explain that ContaMCP cannot connect to a bank or execute transfers. Do not request bank credentials, invoke a bookkeeping mutation as a substitute for payment or claim money moved."
+            }
+          ]
+        }
+      },
+      "publication": {
+        "release_notes": "Initial directory submission package for the hosted ContaMCP ledger, with Google OAuth, audited corrections, recurring bookkeeping and bounded exports. Public listing approval and review evidence are tracked separately from the deployed backend.",
+        "translations": {
+          "es-MX": {
+            "subtitle": "Registra ingresos y gastos",
+            "description": "Registra ingresos y gastos, corrige movimientos identificados por ti con historial de auditoría y consulta totales exactos separados en MXN, USD y EUR. Lleva registros recurrentes, presupuestos y metas de ahorro, y exporta tus datos. Conecta tu registro privado iniciando sesión con Google.\n\nLos registros recurrentes pueden guardarse automáticamente en su fecha de cobro; permanecen sin verificar hasta que confirmes el pago. ContaMCP no se conecta a bancos, mueve dinero, paga facturas ni cancela suscripciones de comercios. No ofrece asesoría fiscal, legal o de inversión. El flujo de efectivo refleja los movimientos registrados, no tu saldo bancario. La disponibilidad es de mejor esfuerzo; conserva tus propias exportaciones."
+          }
+        }
+      }
+    }
+  }
+}
