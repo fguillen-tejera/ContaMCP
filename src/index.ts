@@ -22,15 +22,34 @@ async function boundedRequest(request: Request): Promise<Request | undefined> {
   return new Request(request, { body: new Blob(chunks) });
 }
 
-async function handleRequest(request: Request, env: AppEnv, ctx: ExecutionContext) {
-  const origin = new URL(env.APP_ORIGIN);
+function serverOrigin(env: AppEnv): URL | undefined {
+  let origin: URL;
+  try {
+    origin = new URL(env.APP_ORIGIN);
+  } catch {
+    return;
+  }
   if (
-    !['local', 'staging'].includes(env.APP_ENV) ||
+    !['local', 'staging', 'production'].includes(env.APP_ENV) ||
     origin.origin !== env.APP_ORIGIN ||
     (origin.protocol !== 'https:' &&
       !(env.APP_ENV === 'local' && origin.protocol === 'http:' && origin.hostname === 'localhost'))
   )
-    return Response.json({ error: 'invalid_server_origin' }, { status: 503 });
+    return;
+  return origin;
+}
+
+function hostedAuthConfigured(env: AppEnv): boolean {
+  return Boolean(
+    env.GOOGLE_CLIENT_ID?.trim() &&
+      env.GOOGLE_CLIENT_SECRET?.trim() &&
+      env.ALLOWED_GOOGLE_SUBJECTS?.split(',').some((subject) => subject.trim()),
+  );
+}
+
+async function handleRequest(request: Request, env: AppEnv, ctx: ExecutionContext) {
+  const origin = serverOrigin(env);
+  if (!origin) return Response.json({ error: 'invalid_server_origin' }, { status: 503 });
   const url = new URL(request.url);
   if (url.origin !== origin.origin)
     return Response.json({ error: 'unexpected_host' }, { status: 421 });
@@ -43,13 +62,13 @@ async function handleRequest(request: Request, env: AppEnv, ctx: ExecutionContex
       { status: 429, headers: { 'Retry-After': '60' } },
     );
   if (
-    env.APP_ENV === 'staging' &&
+    env.APP_ENV !== 'local' &&
     ['/authorize', '/auth/google/callback', '/oauth/token', '/oauth/register'].includes(
       url.pathname,
     )
   ) {
-    if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET || !env.ALLOWED_GOOGLE_SUBJECTS?.trim())
-      return Response.json({ error: 'staging_not_configured' }, { status: 503 });
+    if (!hostedAuthConfigured(env))
+      return Response.json({ error: `${env.APP_ENV}_not_configured` }, { status: 503 });
   }
   if (
     url.pathname === '/authorize' ||
@@ -73,10 +92,7 @@ export default {
     ctx.waitUntil(
       (async () => {
         try {
-          if (
-            !['local', 'staging'].includes(env.APP_ENV) ||
-            (env.APP_ENV === 'staging' && (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET))
-          )
+          if (!serverOrigin(env) || (env.APP_ENV !== 'local' && !hostedAuthConfigured(env)))
             throw new Error('Automatic recording is not configured.');
           const subjects = (env.ALLOWED_GOOGLE_SUBJECTS ?? '')
             .split(',')

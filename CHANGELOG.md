@@ -9,6 +9,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- Explicit production environment support, isolated binding templates, fail-closed OAuth/scheduled
+  guards, a production packaging check in CI, and a gated production rollout guide.
 - Weekly dependency/Actions update proposals, a checksum-pinned Gitleaks history scan, and a public
   release checklist covering repository settings and hosted validation gates.
 - Literal Spanish-accent-insensitive description/amount search and exact category/month reports with

@@ -40,6 +40,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate:local": "wrangler d1 migrations apply contamcp --local",
     "build:staging": "wrangler deploy --env staging --dry-run --outdir dist/staging",
+    "build:production": "wrangler deploy --env production --dry-run --outdir dist/production",
     "db:migrate:staging:local": "wrangler d1 migrations apply DB --env staging --local",
     "test:mcp:staging": "node scripts/mcp-staging.mts"
   },

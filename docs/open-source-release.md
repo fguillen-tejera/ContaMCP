@@ -8,7 +8,7 @@ real financial data. Keep the README's hosted-validation limitations visible in 
 - Review the files staged for the first commit. Local secrets, `.wrangler/`, build output, internal
   briefs, real financial records and CFDIs must stay out of the repository. Use synthetic fixtures.
 - Run `pnpm install --frozen-lockfile`, `pnpm exec wrangler types --check`, `pnpm check`, `pnpm audit`,
-  `pnpm build`, and `pnpm build:staging` with Node 24. Apply and reapply migrations to a disposable
+  `pnpm build`, `pnpm build:staging`, and `pnpm build:production` with Node 24. Apply and reapply migrations to a disposable
   local database with `pnpm exec wrangler d1 migrations apply contamcp --local --persist-to /YOUR/TEMP/DIRECTORY`.
   Never use a remote binding for these checks.
 - Review the MIT license, contributor documentation, tool contracts and changelog. The canonical
@@ -42,3 +42,4 @@ No cloud resources, paid services, publishing or deployment are performed by the
 
 Record the tested revision and results. Follow [operations](operations.md) and obtain explicit approval
 before remote provisioning, migrations, secret changes, deployment or paid-service activation.
+Use the [production runbook](production.md) to record the launch decision and environment-specific checks.
