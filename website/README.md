@@ -120,20 +120,26 @@ verified one-click connection. It includes no analytics, registration, or produc
 not covered by this repository's MIT license. They identify the compatible client in the demo and
 compatibility row; ContaMCP is an independent project.
 
-## Privacy and support
+## Privacy, terms and support
 
-The marketing pages link to `/privacy` and `/support` in English, with `/privacidad` and `/soporte`
-in Spanish. These are public static pages with no sign-in requirement. They share the site's colors,
+The marketing pages link to `/privacy`, `/terms` and `/support` in English, with `/privacidad`,
+`/terminos` and `/soporte` in Spanish. These are public static pages with no sign-in requirement.
+They share the site's colors,
 responsive typography and language switch. They disclose the hosted service's actual Google identity,
 Cloudflare storage, retained audit history, assistant access, language preference and font requests.
 Account deletion is not advertised as self-service, and no automatic retention purge is claimed.
 The operator contact matches the production Google support contact.
 
-All eleven public assets are allowlisted by the build and local preview server. The Firebase public
+All thirteen public assets are allowlisted by the build and local preview server. The Firebase public
 directory contains no repository configuration, credentials, documentation or ledger data. Google
 OAuth branding can use `https://contamcp.web.app/en` as its homepage and
 `https://contamcp.web.app/privacy` as its privacy-policy URL. Publishing the website does not deploy
 the MCP Worker or change authentication policy.
+
+The hosted-service Terms cover user instructions, recurring bookkeeping, retained audit history,
+exports, best-effort availability and contact. They preserve mandatory consumer rights and do not
+replace the source code's MIT license. The plugin listing's required Terms URL is
+`https://contamcp.web.app/terms`; see [plugin release](../docs/plugin-release.md) for submission.
 
 ## Hosted MCP address
 

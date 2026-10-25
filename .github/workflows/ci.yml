@@ -44,6 +44,8 @@ jobs:
       - run: pnpm exec wrangler types --check
       - run: pnpm db:migrate:local
       - run: pnpm check
+      - run: pnpm build:website
+      - run: pnpm package:plugin
       - run: pnpm audit
       - run: pnpm build
       - run: pnpm build:staging

@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { URL } from 'node:url';
 
 const assets = new Map<string, readonly [string, string]>([
-  ...['privacy', 'privacidad', 'support', 'soporte'].map(
+  ...['privacy', 'privacidad', 'support', 'soporte', 'terms', 'terminos'].map(
     (name) => [`/${name}`, [`${name}.html`, 'text/html; charset=utf-8']] as const,
   ),
   ['/', ['index.html', 'text/html; charset=utf-8']],

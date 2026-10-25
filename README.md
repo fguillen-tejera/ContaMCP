@@ -43,7 +43,10 @@ address must reconnect with this URL; records stay in the same database. See
 [authentication setup](docs/authentication.md) for permissions and client connection details.
 
 The [marketing site](https://contamcp.web.app), [privacy policy](https://contamcp.web.app/privacy),
-and [support page](https://contamcp.web.app/support) are hosted separately.
+[terms](https://contamcp.web.app/terms), and [support page](https://contamcp.web.app/support) are
+hosted separately. The public-directory submission package is in `plugins/contamcp/`; see
+[plugin release](docs/plugin-release.md) for packaging and the remaining review gates. A deployed
+service or custom connection does not imply public-directory approval.
 
 ## Local development
 

@@ -7,6 +7,8 @@ const assets = [
   'privacidad.html',
   'support.html',
   'soporte.html',
+  'terms.html',
+  'terminos.html',
   'index.html',
   'english.html',
   'styles.css',
