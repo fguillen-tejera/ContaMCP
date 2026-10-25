@@ -26,13 +26,17 @@ import {
   googleSubject,
 } from './google';
 
-export type AppEnv = Omit<Env, 'APP_ORIGIN' | 'APP_ENV' | 'GOOGLE_ACCESS_MODE'> & {
+export type AppEnv = Omit<
+  Env,
+  'APP_ORIGIN' | 'APP_ENV' | 'GOOGLE_ACCESS_MODE' | 'OPENAI_APPS_CHALLENGE'
+> & {
   APP_ORIGIN: string;
   APP_ENV: 'local' | 'staging' | 'production';
   GOOGLE_CLIENT_ID?: string;
   GOOGLE_CLIENT_SECRET?: string;
   ALLOWED_GOOGLE_SUBJECTS?: string;
   GOOGLE_ACCESS_MODE?: string;
+  OPENAI_APPS_CHALLENGE?: string;
   OAUTH_PROVIDER?: OAuthHelpers;
   DIAGNOSTICS?: Diagnostics;
 };

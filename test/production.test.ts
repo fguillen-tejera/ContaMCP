@@ -25,6 +25,68 @@ function production(overrides: Partial<AppEnv> = {}) {
 afterEach(() => vi.restoreAllMocks());
 
 describe('production boundaries', () => {
+  it('serves only the exact configured public directory challenge without requiring a login', async () => {
+    const challenge = 'synthetic-directory-challenge_1234567890';
+    const env = production({
+      OPENAI_APPS_CHALLENGE: challenge,
+      GOOGLE_CLIENT_ID: undefined,
+      GOOGLE_CLIENT_SECRET: undefined,
+    });
+    const oauthLimit = vi.spyOn(env.OAUTH_RATE_LIMIT, 'limit');
+    const database = vi.spyOn(env.DB, 'prepare');
+    for (const method of ['GET', 'HEAD']) {
+      const response = await dispatch(
+        new Request(`${env.APP_ORIGIN}/.well-known/openai-apps-challenge`, { method }),
+        env,
+      );
+      expect(response.status).toBe(200);
+      expect(await response.text()).toBe(method === 'HEAD' ? '' : challenge);
+      expect(response.headers.get('Content-Type')).toBe('text/plain; charset=utf-8');
+      expect(response.headers.get('Cache-Control')).toBe('no-store');
+      expect(response.headers.get('X-Content-Type-Options')).toBe('nosniff');
+    }
+    expect(oauthLimit).not.toHaveBeenCalled();
+    expect(database).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    { OPENAI_APPS_CHALLENGE: undefined },
+    { OPENAI_APPS_CHALLENGE: '' },
+    { OPENAI_APPS_CHALLENGE: 'short' },
+    { OPENAI_APPS_CHALLENGE: `${'a'.repeat(32)}\n` },
+    { OPENAI_APPS_CHALLENGE: 'a'.repeat(257) },
+    { APP_ENV: 'staging' as const, OPENAI_APPS_CHALLENGE: 'a'.repeat(32) },
+    { APP_ENV: 'local' as const, OPENAI_APPS_CHALLENGE: 'a'.repeat(32) },
+  ])('does not publish an absent, malformed or non-production challenge: %j', async (overrides) => {
+    const env = production(overrides);
+    const response = await dispatch(
+      new Request(`${env.APP_ORIGIN}/.well-known/openai-apps-challenge?token=${'b'.repeat(32)}`),
+      env,
+    );
+    expect(response.status).toBe(404);
+    expect(await response.text()).toBe('');
+  });
+
+  it('preserves canonical-host, browser-origin and MCP authentication boundaries around the challenge', async () => {
+    const env = production({ OPENAI_APPS_CHALLENGE: 'a'.repeat(32) });
+    const path = '/.well-known/openai-apps-challenge';
+    expect((await dispatch(new Request(`https://alternate.example${path}`), env)).status).toBe(421);
+    expect(
+      (
+        await dispatch(
+          new Request(`${env.APP_ORIGIN}${path}`, {
+            headers: { Origin: 'https://untrusted.example' },
+          }),
+          env,
+        )
+      ).status,
+    ).toBe(403);
+    const post = await dispatch(new Request(`${env.APP_ORIGIN}${path}`, { method: 'POST' }), env);
+    expect(post.status).toBe(405);
+    expect(post.headers.get('Allow')).toBe('GET, HEAD');
+    expect((await dispatch(new Request(`${env.APP_ORIGIN}/mcp`), env)).status).toBe(401);
+  });
+
   it.each([
     { GOOGLE_CLIENT_ID: undefined },
     { GOOGLE_CLIENT_SECRET: undefined },

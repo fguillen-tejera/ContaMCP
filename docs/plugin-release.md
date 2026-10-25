@@ -20,7 +20,7 @@ pnpm install --frozen-lockfile
 pnpm check
 pnpm build:website
 pnpm package:plugin
-unzip -l dist/plugins/contamcp-0.1.0.zip
+unzip -l dist/plugins/contamcp-0.1.1.zip
 ```
 
 The build archives only three explicit files from `plugins/contamcp/`, rejects symlinks in those
@@ -29,7 +29,7 @@ The ZIP has `plugin.json` and `mcp.json` at its root. Build outputs remain ignor
 Do not add `.dev.vars*`, `.wrangler/`, local Wrangler configuration, reviewer credentials, account
 identifiers, tokens, callback URLs, production exports or private recordings to the public package.
 
-The package is version `0.1.0`; this is a submission draft, not an approval claim. Change the version
+The package is version `0.1.1`; this is a submission draft, not an approval claim. Change the version
 when uploading a revised package. Update the listing fields in source rather than relying on edits
 in the portal. Keep the public display name aligned with the product; resolve any naming finding
 with the reviewer rather than advertising OpenAI endorsement.
@@ -66,6 +66,10 @@ before submission; do not add a reviewer authentication bypass or weaken product
 Enter credentials and private sign-in instructions only in the portal's protected Review details.
 Keep that account available for later reviews. Do not write credentials in this document, the
 manifest, issues, PR descriptions, recordings or public chat.
+
+The directory display name is **Conta — Income & Expenses**, in **Finance**. The repository,
+package identifier and hosted service remain ContaMCP. This addresses the portal's automated
+request to remove “MCP” from the display name without changing the server address.
 
 The package supplies exactly five positive cases and three negative cases. These are planned
 acceptance cases, not evidence that they have already passed. Run positives in order in the
@@ -114,8 +118,13 @@ absent from the package. Local checks alone do not complete these gates.
    ledger scopes. Never select unauthenticated access for this protected service.
 4. Host the exact domain challenge as plain text at the HTTPS URL specified by the portal,
    normally `https://contamcp.devbyfer.com/.well-known/openai-apps-challenge`. Do not invent its
-   value or replace a challenge used by another app. Only add the narrowly scoped public route
-   after receiving the actual challenge; do not change OAuth, ledger or host authorization.
+   value or replace a challenge used by another app. Set `OPENAI_APPS_CHALLENGE` in the private
+   production config to the portal's public token. The canonical-host GET/HEAD route serves only
+   a configured 32-256 character base64url token, with no JSON wrapper or newline. It returns 404
+   outside production or with missing/malformed config and never reads OAuth or ledger storage.
+   Do not put an OAuth credential in this variable. Deploy the reviewed source and verify the
+   exact response before selecting Verify Domain. OAuth, ledger and host authorization still apply
+   to their existing endpoints.
 5. Complete genuine sign-in, tool scans, reviewer account details, the real recording URL, test
    evidence and release notes. Re-upload corrected metadata or rescan hosted changes as needed.
 6. Once all gates pass, review the policy attestations and submit. Follow review feedback. After

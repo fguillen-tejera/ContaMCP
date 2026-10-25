@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "contamcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Keep a private income and expense ledger through your assistant, with exact currency totals, audited corrections, recurring bookkeeping and exports.",
   "author": {
     "name": "Fernando Guillen",
@@ -15,11 +15,11 @@
   "extensions": {
     "com.openai": {
       "interface": {
-        "displayName": "ContaMCP",
+        "displayName": "Conta — Income & Expenses",
         "shortDescription": "Track income and expenses",
         "longDescription": "Record income and expenses, correct user-selected entries with an audit history, and view exact totals separately for MXN, USD and EUR. Track recurring bookkeeping, budgets and savings goals, and export your records. Sign in with Google to connect your private ledger.\n\nRecurring schedules can automatically record entries on billing dates; those entries remain unverified until you confirm payment. ContaMCP does not connect to banks, move money, pay bills, cancel merchant subscriptions or provide professional tax, legal or investment advice. Cash flow describes recorded entries, not your bank balance. Service availability is best effort; keep your own exports. English and Spanish documentation are available.",
         "developerName": "Fernando Guillen",
-        "category": "Productivity",
+        "category": "Finance",
         "capabilities": [
           "Income and expense tracking",
           "Recurring bookkeeping",
@@ -30,7 +30,7 @@
         "privacyPolicyURL": "https://contamcp.web.app/privacy",
         "termsOfServiceURL": "https://contamcp.web.app/terms",
         "defaultPrompt": [
-          "Record a 125.50 MXN grocery expense for October 25, 2026.",
+          "Record a 125.50 MXN grocery expense for today.",
           "Show my recorded income, expenses and net cash flow for October 2026.",
           "Help me set up a recurring monthly bookkeeping entry."
         ],
@@ -93,7 +93,7 @@
         }
       },
       "publication": {
-        "release_notes": "Initial directory submission package for the hosted ContaMCP ledger, with Google OAuth, audited corrections, recurring bookkeeping and bounded exports. Public listing approval and review evidence are tracked separately from the deployed backend.",
+        "release_notes": "Update the directory display name to Conta — Income & Expenses and select Finance to address automated listing findings. The hosted ContaMCP ledger uses Google OAuth, audited corrections, recurring bookkeeping and bounded exports. Public approval and reviewer acceptance remain separate gates.",
         "translations": {
           "es-MX": {
             "subtitle": "Registra ingresos y gastos",
