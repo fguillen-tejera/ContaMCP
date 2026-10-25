@@ -36,6 +36,8 @@
       "vars": {
         "APP_ORIGIN": "https://contamcp-production.YOUR_SUBDOMAIN.workers.dev",
         "APP_ENV": "production",
+        // Optional public ownership proof from the OpenAI submission portal; never an auth token.
+        "OPENAI_APPS_CHALLENGE": "",
         "GOOGLE_ACCESS_MODE": "allowlist"
       },
       "d1_databases": [

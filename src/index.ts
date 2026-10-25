@@ -59,6 +59,23 @@ async function handleRequest(request: Request, env: AppEnv, ctx: ExecutionContex
   const browserOrigin = request.headers.get('Origin');
   if (browserOrigin && browserOrigin !== origin.origin)
     return Response.json({ error: 'untrusted_origin' }, { status: 403 });
+  if (url.pathname === '/.well-known/openai-apps-challenge') {
+    if (request.method !== 'GET' && request.method !== 'HEAD')
+      return new Response(null, { status: 405, headers: { Allow: 'GET, HEAD' } });
+    const challenge = env.OPENAI_APPS_CHALLENGE;
+    if (
+      env.APP_ENV !== 'production' ||
+      !challenge ||
+      challenge.length < 32 ||
+      challenge.length > 256 ||
+      /[^A-Za-z0-9_-]/.test(challenge)
+    )
+      return new Response(null, { status: 404 });
+    // The directory requires the exact public token, without JSON encoding or a newline.
+    return new Response(request.method === 'HEAD' ? null : challenge, {
+      headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+    });
+  }
   if (url.pathname === '/mcp' && !(await env.MCP_RATE_LIMIT.limit({ key: 'ingress' })).success)
     return Response.json(
       { error: 'rate_limited' },
