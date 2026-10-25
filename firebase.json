@@ -1,0 +1,90 @@
+{
+  "hosting": {
+    "site": "contamcp",
+    "public": "dist/website",
+    "predeploy": ["pnpm build:website"],
+    "ignore": ["**/.*", "**/node_modules/**"],
+    "trailingSlash": false,
+    "redirects": [
+      {
+        "source": "/es/",
+        "destination": "/es",
+        "type": 301
+      },
+      {
+        "source": "/index.html",
+        "destination": "/es",
+        "type": 301
+      },
+      {
+        "source": "/en/",
+        "destination": "/en",
+        "type": 301
+      },
+      {
+        "source": "/english.html",
+        "destination": "/en",
+        "type": 301
+      }
+    ],
+    "rewrites": [
+      {
+        "source": "/es",
+        "destination": "/index.html"
+      },
+      {
+        "source": "/en",
+        "destination": "/english.html"
+      },
+      {
+        "source": "/privacy",
+        "destination": "/privacy.html"
+      },
+      {
+        "source": "/privacidad",
+        "destination": "/privacidad.html"
+      },
+      {
+        "source": "/support",
+        "destination": "/support.html"
+      },
+      {
+        "source": "/soporte",
+        "destination": "/soporte.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=0, must-revalidate"
+          },
+          {
+            "key": "X-Content-Type-Options",
+            "value": "nosniff"
+          },
+          {
+            "key": "Referrer-Policy",
+            "value": "strict-origin-when-cross-origin"
+          },
+          {
+            "key": "Content-Security-Policy",
+            "value": "default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"
+          }
+        ]
+      }
+    ]
+  },
+  "emulators": {
+    "hosting": {
+      "host": "127.0.0.1",
+      "port": 4322
+    },
+    "ui": {
+      "enabled": false
+    },
+    "singleProjectMode": true
+  }
+}

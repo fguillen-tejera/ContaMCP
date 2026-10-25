@@ -12,3 +12,6 @@ coverage/
 .DS_Store
 *.log
 ContaMCP_Project_Brief*.md
+
+.firebase/
+firebase-debug*.log
