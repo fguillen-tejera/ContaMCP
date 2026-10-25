@@ -9,6 +9,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Added
 
+- A CPU-only staging workload and bounded hosted throttle observations using safe mutation replays,
+  location diagnostics and independent cooldown recovery checks.
 - Explicit production environment support, isolated binding templates, fail-closed OAuth/scheduled
   guards, a production packaging check in CI, and a gated production rollout guide.
 - Weekly dependency/Actions update proposals, a checksum-pinned Gitleaks history scan, and a public
@@ -33,6 +35,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Changed
 
+- Reuse the Mexico City calendar formatter lazily while calculating each requested date afresh.
 - ChatGPT connections with exclusively registered official callback destinations go directly to
   Google, including first connections through the plugin or manual MCP setup. Other clients retain
   one-time app approval.
