@@ -1,7 +1,7 @@
-import { automaticRecordingOwners } from './db/automatic';
+import { automaticRecordingOwners, publicAutomaticRecordingOwners } from './db/automatic';
 import { ledgerStore } from './db/ledger';
 import { recordDueOccurrences } from './planning/automatic';
-import { type AppEnv, oauthProvider } from './auth/provider';
+import { type AppEnv, googleAccessMode, oauthProvider } from './auth/provider';
 import { diagnostics } from './diagnostics';
 
 async function boundedRequest(request: Request): Promise<Request | undefined> {
@@ -40,10 +40,13 @@ function serverOrigin(env: AppEnv): URL | undefined {
 }
 
 function hostedAuthConfigured(env: AppEnv): boolean {
+  const mode = googleAccessMode(env);
   return Boolean(
     env.GOOGLE_CLIENT_ID?.trim() &&
       env.GOOGLE_CLIENT_SECRET?.trim() &&
-      env.ALLOWED_GOOGLE_SUBJECTS?.split(',').some((subject) => subject.trim()),
+      (mode === 'public' ||
+        (mode === 'allowlist' &&
+          env.ALLOWED_GOOGLE_SUBJECTS?.split(',').some((subject) => subject.trim()))),
   );
 }
 
@@ -98,12 +101,12 @@ export default {
             .split(',')
             .map((subject) => subject.trim())
             .filter(Boolean);
-          const owners = await automaticRecordingOwners(env.DB, subjects);
-          const result = await recordDueOccurrences(
-            ledgerStore(env.DB),
-            owners,
-            new Date(controller.scheduledTime),
-          );
+          const now = new Date(controller.scheduledTime);
+          const owners =
+            googleAccessMode(env) === 'public'
+              ? await publicAutomaticRecordingOwners(env.DB, now)
+              : await automaticRecordingOwners(env.DB, subjects);
+          const result = await recordDueOccurrences(ledgerStore(env.DB), owners, now);
           if (result.failed) throw new Error('Automatic recording failed.');
         } catch {
           diagnostics().report('automatic_recording_failed');

@@ -142,6 +142,11 @@ export const recurringEntries = sqliteTable(
   },
   (table) => [
     index('recurring_owner_id').on(table.ownerId, table.id),
+    index('recurring_automatic_due')
+      .on(sql`json_extract(${table.data}, '$.nextDate')`, table.id)
+      .where(
+        sql`json_extract(${table.data}, '$.active') = 1 AND json_extract(${table.data}, '$.automatic') = 1 AND COALESCE(json_extract(${table.data}, '$.needsReview'), 0) = 0`,
+      ),
     check(
       'recurring_valid_data',
       sql`json_valid(${table.data}) AND json_extract(${table.data}, '$.id') = ${table.id} AND json_extract(${table.data}, '$.version') = ${table.version} AND ${table.version} > 0`,

@@ -2,5 +2,6 @@
 # Real files are ignored. Never put secret values in command arguments or chat.
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
-# Comma-separated stable Google sub values, never emails. Mandatory in staging/production and for scheduled jobs; optional for local interactive OAuth.
+# Comma-separated stable Google sub values, never emails. Required for hosted access and scheduled jobs
+# in the default allowlist mode. For public signup, set GOOGLE_ACCESS_MODE to public in Wrangler vars.
 ALLOWED_GOOGLE_SUBJECTS=

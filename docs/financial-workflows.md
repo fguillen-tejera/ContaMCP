@@ -185,14 +185,15 @@ adjustment is inferred. A next date beyond year 9999 is rejected.
 
 ### Job authorization, limits, and recovery
 
-The job derives owners from persisted verified Google identities and the private
-`ALLOWED_GOOGLE_SUBJECTS` allowlist, then performs owner-scoped queries/writes. It fails closed without
-that explicit allowlist, including in local development. Staging also requires its Google credentials.
-Only active automatic schedules are eligible. OAuth logout/revocation does not cancel a saved standing
-instruction; pause/cancel the schedule or remove the owner from the operational allowlist to stop it.
+In default allowlist mode, the job derives owners from persisted verified Google identities and
+private `ALLOWED_GOOGLE_SUBJECTS`, failing closed without that list even locally. In explicit public
+mode, it selects owners from up to five active, automatic, due schedules ordered by next date and ID;
+manual, paused and review-blocked schedules are excluded. Hosted modes still require Google
+credentials. All queries/writes stay owner-scoped. OAuth logout/revocation does not cancel a standing
+instruction: pause/cancel it. Removing an owner from the list stops work only in allowlist mode.
 
 The job checks hourly (`0 * * * *`, UTC trigger schedule) and compares calendar dates in Mexico City.
-It processes at most five occurrences per run, alternating allowed owners. Missed periods retain
+It processes at most five occurrences per run, alternating the selected owners. Missed periods retain
 scheduled dates and catch up over subsequent runs; large backlogs can take several runs. Unexpected
 failure leaves the affected occurrence eligible for retry and does not prevent other owners from
 being processed. Errors log only a fixed event and random correlation ID, never financial payloads.
