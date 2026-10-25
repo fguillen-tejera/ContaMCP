@@ -164,6 +164,36 @@ describe('production boundaries', () => {
     expect((await dispatch(new Request(`${env.APP_ORIGIN}/mcp`), env)).status).toBe(401);
   });
 
+  it('requires new-origin authorization after a hostname change without replacing the user', async () => {
+    const previous = production({
+      APP_ORIGIN: 'https://previous.example',
+      GOOGLE_ACCESS_MODE: 'public',
+      ALLOWED_GOOGLE_SUBJECTS: undefined,
+    });
+    const user = await principal(previous);
+    const current = { ...previous, APP_ORIGIN: 'https://production.example' };
+    const rejected = await dispatch(
+      new Request(`${current.APP_ORIGIN}/mcp`, {
+        headers: { Authorization: `Bearer ${user.token}` },
+      }),
+      current,
+    );
+    expect(rejected.status).toBe(401);
+    expect(rejected.headers.get('WWW-Authenticate')).toContain(
+      `${current.APP_ORIGIN}/.well-known/oauth-protected-resource/mcp`,
+    );
+    expect((await dispatch(new Request(`${previous.APP_ORIGIN}/mcp`), current)).status).toBe(421);
+    const reconnected = await principal(current, ['expenses:read'], user);
+    const client = await connect(current, reconnected.token);
+    try {
+      expect((await client.listTools()).tools.length).toBeGreaterThan(0);
+    } finally {
+      await client.close();
+    }
+    expect(reconnected.userId).toBe(user.userId);
+    expect(await current.DB.prepare('SELECT COUNT(*) n FROM users').first('n')).toBe(1);
+  });
+
   it('processes public users standing schedules within the existing five-occurrence budget', async () => {
     const env = production({ GOOGLE_ACCESS_MODE: 'public', ALLOWED_GOOGLE_SUBJECTS: undefined });
     const store = ledgerStore(env.DB);

@@ -43,6 +43,11 @@ callback, and designated test users. Consult [Google's current OIDC guide](https
 
 ## Connect a client
 
+For the public ContaMCP deployment, use **`https://contamcp.devbyfer.com/mcp`**. If you connected
+through its previous `workers.dev` address, update the server URL and authorize again. The Google
+account still resolves to the same stored user and ledger. Tokens and remembered browser approvals
+are bound to the original resource/origin and are not portable between hostnames.
+
 Use an OAuth-capable Streamable HTTP MCP client and the URL `https://YOUR_APPROVED_HOST/mcp`.
 Request `ledger:read ledger:write` for the full financial workflow, or just `ledger:read` for read-only
 access. Clients that also use the six legacy expense tools must additionally request

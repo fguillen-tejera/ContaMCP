@@ -35,6 +35,16 @@ places). No exchange conversion or tax calculation is performed. See [tool contr
 
 No frontend, AI inference, receipts, CFDI processing, banking, billing, R2, or analytics are included.
 
+## Hosted service
+
+Connect an OAuth-capable MCP client to **`https://contamcp.devbyfer.com/mcp`** and sign in with Google.
+Each account has its own private ledger. Existing connections using the previous `workers.dev`
+address must reconnect with this URL; records stay in the same database. See
+[authentication setup](docs/authentication.md) for permissions and client connection details.
+
+The [marketing site](https://contamcp.web.app), [privacy policy](https://contamcp.web.app/privacy),
+and [support page](https://contamcp.web.app/support) are hosted separately.
+
 ## Local development
 
 Install Node 24+ and pnpm 10.9.0, then:
