@@ -103,8 +103,9 @@ absent from the package. Local checks alone do not complete these gates.
 
 ## Portal submission
 
-1. Sign in to OpenAI Platform, select the user-approved **Personal** organization and intended
-   project. Confirm ownership and Apps Management Write access. Complete individual verification
+1. Sign in to OpenAI Platform, select the user-approved publishing organization and intended project. The current
+   preference is an already verified **Fernando** organization; distinguish same-named
+   organizations by their IDs and verification status before creating a draft. Confirm ownership and Apps Management Write access. Complete individual verification
    under the intended publisher name; identity documents and verification actions belong to the
    account holder.
 2. Open Plugins and upload the ZIP. Select the verified publishing identity when required. Keep
