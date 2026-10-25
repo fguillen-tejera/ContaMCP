@@ -116,16 +116,31 @@ pnpm test:mcp:staging https://contamcp-staging.YOUR_SUBDOMAIN.workers.dev/mcp --
 This uses one real Google login and retains credentials only in memory. It creates one synthetic
 expense on `2099-12-29` (`other`, MXN), runs 16 calls each for discovery, listing, summary, creation
 replay and correction/replay, then waits 65 seconds. It sends at most 300 sequential anonymous MCP
-requests, with 100 ms pauses, stopping at the first 429. Two valid authenticated mutation attempts
-must then return 429 with retry guidance. After another 65 seconds, reads/discovery must recover.
-Unlike acceptance, these probe requests do not automatically retry 429. A missing 429 or unexpected
-status fails the run; do not expand traffic indefinitely.
+requests, with 100 ms pauses, stopping at the first 429. It then observes up to eight rounds of
+authenticated create/update **replays**, with 500 ms pauses between rounds. Both request classes must
+observe 429 with retry guidance; already-throttled classes are not sent again. The official client
+supplies negotiated protocol headers. Original input and retry keys are reused, so an allowed replay
+cannot create another financial intent. A single 429 does not guarantee the next request is rejected:
+Cloudflare's per-location counters propagate between running instances in the background, even in
+one location. See [rate-limit accuracy](https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/#accuracy).
+
+After another 65 seconds, authenticated discovery and a successful read must recover. Recovery is
+checked even if the bounded throttling observation is inconclusive; that outcome still exits nonzero
+and is not a passed launch gate. Transport, unexpected tool results and invalid replay receipts fail
+the run. Probe requests do not automatically retry 429 or generate replacement mutation keys. Do not
+expand traffic indefinitely to force a pass.
 
 Read remote nonfinancial D1 expense/audit counts before and after: a successful isolated run adds
 exactly one expense and two audit receipts. This independent check is required to establish rejected
-mutations did not persist. The CLI prints only operation labels, timestamps, status and request IDs;
+mutations did not persist. The CLI prints only operation labels, timestamps, status, request IDs and
+Cloudflare location codes derived from `CF-Ray`;
 it does not report network latency as CPU. Collect Cloudflare CPU metrics separately. Independent
 hosted per-user throttling is not proven when the aggregate ingress limiter fires first.
+
+For a CPU measurement window without the anonymous throttle burst, run the same benchmark workload
+alone with `--cpu-probes`. It has the same one-expense/two-receipt synthetic effects. Neither mode
+measures CPU itself or establishes plan headroom: record hosted metrics for its timestamped phases,
+including cold starts, Google callbacks and scheduled work, separately.
 
 ## Remembered app approval
 

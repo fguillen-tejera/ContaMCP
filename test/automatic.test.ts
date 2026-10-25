@@ -7,7 +7,7 @@ import {
 import { z } from 'zod';
 import { ledgerStore, verifyAuditChain } from '../src/db/ledger';
 import { automaticRecordingOwners } from '../src/db/automatic';
-import { createExpenseSchema, expenseSchema } from '../src/domain/expense';
+import { createExpenseSchema, expenseSchema, todayInMexico } from '../src/domain/expense';
 import { requestHash } from '../src/domain/mutation';
 import { recurringSchema } from '../src/domain/planning';
 import {
@@ -51,6 +51,19 @@ afterEach(() => {
 });
 
 describe('automatic recurring recording', () => {
+  it('reuses calendar formatting without caching the date across midnight or year boundaries', () => {
+    expect(
+      [
+        '2026-10-24T05:59:59Z',
+        '2026-10-24T06:00:00Z',
+        '2027-01-01T05:59:59Z',
+        '2027-01-01T06:00:00Z',
+        '2024-03-01T05:59:59Z',
+        '2026-10-24T05:59:59Z',
+      ].map((instant) => todayInMexico(new Date(instant))),
+    ).toEqual(['2026-10-23', '2026-10-24', '2026-12-31', '2027-01-01', '2024-02-29', '2026-10-23']);
+  });
+
   it('defaults new schedules to automatic and records exactly once at the Mexico City billing date', async () => {
     const { store, user, env } = await account();
     const schedule = await createRecurring(store, user.userId, input(), now);

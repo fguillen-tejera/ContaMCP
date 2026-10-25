@@ -105,6 +105,18 @@ Free Time Travel retention is seven days; execute a reversible synthetic-record 
 record its result before real financial data. See [D1 recovery](https://developers.cloudflare.com/d1/reference/time-travel/).
 No restore drill is claimed locally.
 
+For a routine cloud recovery rehearsal, prefer an isolated temporary D1 database and Worker with no
+public route, populated only with synthetic fixtures. Verify scheduled owner isolation and retry
+receipts, then stop its scheduled writer before restoring. Compare the complete before/restored
+contents of all nine application tables, including ledger, planning/account receipts, schedules,
+goals, budgets and preferences; counts alone do not prove consistent recovery. Check foreign keys
+and remove the temporary cloud resources after verification. Provisioning/deletion/restore still
+require approval. This rehearsal does not require rolling back a shared staging ledger.
+
+Wrangler D1 exports print a temporary signed download URL. Suppress or redact that URL before
+recording command output, and keep financial SQL exports private and out of Git. Record snapshot
+fingerprints and check outcomes instead of record contents.
+
 OAuth KV is disposable credential state, not the financial authority. If compromised, close the pilot,
 rotate the relevant Google secret, invalidate grants or replace the deployment's KV, and
 require new logins. Do not export token/grant contents for incident reports. D1 users/expense/audit data

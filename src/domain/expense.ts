@@ -198,11 +198,14 @@ export function formatMinor(minor: string | bigint): string {
   return `${value < 0n ? '-' : ''}${absolute / 100n}.${(absolute % 100n).toString().padStart(2, '0')}`;
 }
 
+let mexicoCityDateFormatter: Intl.DateTimeFormat | undefined;
+
 export function todayInMexico(now: Date): string {
-  return new Intl.DateTimeFormat('en-CA', {
+  mexicoCityDateFormatter ??= new Intl.DateTimeFormat('en-CA', {
     timeZone: 'America/Mexico_City',
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
-  }).format(now);
+  });
+  return mexicoCityDateFormatter.format(now);
 }

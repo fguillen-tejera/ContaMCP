@@ -9,7 +9,7 @@ import { runStagingProbes } from './staging-probes.ts';
 const args = process.argv.slice(2);
 if (args.includes('--help')) {
   console.log(
-    'Usage: pnpm test:mcp:staging https://APPROVED_STAGING_HOST/mcp [--wait-for-expiry | --probes | --guard-probes]\nAcceptance: browser login for accounts A, B, then A read-only; writes two synthetic records. Probes: one login, 80 benchmark requests, up to 300 anonymous requests, two rejected mutation checks, and cooldown recovery; retains one synthetic record and two audit receipts. Guard probes: reject three unsafe correction requests against the evaluation fixtures. Credentials remain in memory.',
+    'Usage: pnpm test:mcp:staging https://APPROVED_STAGING_HOST/mcp [--wait-for-expiry | --probes | --cpu-probes | --guard-probes]\nAcceptance: browser login for accounts A, B, then A read-only; writes two synthetic records. Probes: one login, 80 benchmark calls, up to 300 anonymous requests, up to 16 existing-mutation replays, and cooldown recovery; retains one synthetic record and two audit receipts. CPU probes: only the 80-call benchmark workload, without the throttle burst. Guard probes: reject three unsafe correction requests against the evaluation fixtures. Credentials remain in memory.',
   );
   process.exit(0);
 }
@@ -24,7 +24,13 @@ if (
   endpoint.hostname.endsWith('.invalid')
 )
   throw new Error('Supply the approved HTTPS staging endpoint ending in /mcp.');
-if (args.slice(1).some((arg) => !['--wait-for-expiry', '--probes', '--guard-probes'].includes(arg)))
+if (
+  args
+    .slice(1)
+    .some(
+      (arg) => !['--wait-for-expiry', '--probes', '--cpu-probes', '--guard-probes'].includes(arg),
+    )
+)
   throw new Error('Unknown option.');
 if (args.slice(1).length > 1) throw new Error('Run acceptance and operational probes separately.');
 
@@ -69,6 +75,7 @@ async function main() {
   const a = await stagingLogin(endpoint, 'account A', undefined, request);
   if (args.includes('--guard-probes')) return runCorrectionGuardProbes(endpoint, a.access_token);
   if (args.includes('--probes')) return runStagingProbes(endpoint, a.access_token);
+  if (args.includes('--cpu-probes')) return runStagingProbes(endpoint, a.access_token, 'cpu');
   const b = await stagingLogin(endpoint, 'a DIFFERENT account B', undefined, request);
   const connect = async (account: 'A' | 'B') => {
     const client = new Client({ name: 'contamcp-independent-staging-client', version: '1.0.0' });
