@@ -26,12 +26,13 @@ import {
   googleSubject,
 } from './google';
 
-export type AppEnv = Omit<Env, 'APP_ORIGIN' | 'APP_ENV'> & {
+export type AppEnv = Omit<Env, 'APP_ORIGIN' | 'APP_ENV' | 'GOOGLE_ACCESS_MODE'> & {
   APP_ORIGIN: string;
   APP_ENV: 'local' | 'staging' | 'production';
   GOOGLE_CLIENT_ID?: string;
   GOOGLE_CLIENT_SECRET?: string;
   ALLOWED_GOOGLE_SUBJECTS?: string;
+  GOOGLE_ACCESS_MODE?: string;
   OAUTH_PROVIDER?: OAuthHelpers;
   DIAGNOSTICS?: Diagnostics;
 };
@@ -53,11 +54,21 @@ const consentSubmissionSchema = z.strictObject({
 });
 
 export function allowedSubject(env: AppEnv, subject: string): boolean {
+  if (!subject.trim()) return false;
+  const mode = googleAccessMode(env);
+  if (mode === 'public') return true;
+  if (mode !== 'allowlist') return false;
   const allowed = (env.ALLOWED_GOOGLE_SUBJECTS ?? '')
     .split(',')
     .map((value) => value.trim())
     .filter(Boolean);
   return (env.APP_ENV === 'local' && allowed.length === 0) || allowed.includes(subject);
+}
+
+export function googleAccessMode(env: AppEnv): 'allowlist' | 'public' | undefined {
+  if (env.GOOGLE_ACCESS_MODE === undefined || env.GOOGLE_ACCESS_MODE === 'allowlist')
+    return 'allowlist';
+  if (env.GOOGLE_ACCESS_MODE === 'public') return 'public';
 }
 
 function googleConfig(env: AppEnv): GoogleConfig | undefined {

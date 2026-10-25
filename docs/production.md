@@ -1,7 +1,9 @@
 # Production setup and rollout
 
-The production template supports a small **allowlisted pilot**. It does not implement public signup,
-account deletion or a retention policy. Choose the production hostname and Google project/client
+The production template defaults to an **allowlisted pilot** and supports explicit public Google
+signup with `GOOGLE_ACCESS_MODE: "public"`. Both modes require verified Google authentication and
+private, owner-scoped ledgers. Account-deletion UI and an automatic retention policy are not included.
+Choose the production hostname and Google project/client
 before provisioning or deployment. No production resource is created by CI or a build command.
 Publishing this source and passing local tests do not complete the hosted gates below.
 
@@ -26,21 +28,29 @@ Create a dedicated Google **Web application** OAuth client for production. Regis
 https://YOUR_PRODUCTION_HOST/auth/google/callback
 ```
 
-Configure Google branding, audience and pilot testers, requesting only the existing `openid` scope.
+Configure Google branding and audience, requesting only the existing `openid` scope. Restricted
+pilots can use External/Testing with designated testers; for public signup, publish the production
+OAuth app as External/In production. Check Google account and branding restrictions separately.
 Google's redirect must match the deployed callback exactly; MCP client return URLs such as ChatGPT's
 belong to a different OAuth flow. Follow [authentication setup](authentication.md) and
 [Google's OIDC guide](https://developers.google.com/identity/openid-connect/openid-connect).
 Review Google's consent/publishing requirements for the intended audience before broader access.
 
-Store `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `ALLOWED_GOOGLE_SUBJECTS` as production secrets.
-The allowlist contains verified stable Google `sub` identifiers, never emails or guessed identities.
-It is checked at sign-in and on every authenticated MCP request. Empty values do not open signup.
-Removing a subject denies its existing tokens on subsequent requests; an in-flight operation may
-finish. Use at most 100 distinct subjects, matching the scheduled owner-resolution bound.
+Store `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` as production secrets. Set `GOOGLE_ACCESS_MODE`
+in Wrangler vars for the target environment:
+- `allowlist` (default when absent): also store `ALLOWED_GOOGLE_SUBJECTS` as a secret. It contains
+  stable Google `sub` identifiers, never emails or guessed identities, and is checked at sign-in and
+  every authenticated request. Removing a subject denies subsequent requests; an in-flight operation
+  may finish. Use at most 100 distinct subjects for bounded background owner resolution.
+- `public`: any verified Google account can register or reconnect. The subject list is ignored.
+  Anonymous access, forged identities and cross-owner financial access remain denied. The Cron job
+  selects owners from up to five eligible, user-established due schedules and retains the existing
+  five-occurrence budget per run. Backlogs continue on later runs.
 
-Missing/blank hosted credentials or an empty subject list close authorization, callback, registration
-and token endpoints with `503 production_not_configured`. Scheduled execution also fails closed for
-invalid origin, missing configuration or an empty/oversized owner allowlist. `/health` only reports
+Missing/blank hosted credentials, an unknown access mode, or an empty subject list in allowlist mode
+close authorization, callback, registration and token endpoints with `503 production_not_configured`.
+Scheduled execution fails closed for invalid origin/configuration or an empty/oversized restricted
+owner list. `/health` only reports
 process health; it does not prove migrations, Google login or operational readiness.
 
 ## Prepare configuration and isolated storage
@@ -81,7 +91,8 @@ pnpm exec wrangler d1 migrations list DB --config wrangler.production.local.json
 pnpm exec wrangler d1 execute DB --config wrangler.production.local.jsonc --env production --remote --command 'PRAGMA foreign_key_check'
 ```
 
-This change requires no new schema migration. A fresh database still needs the existing migrations.
+Apply migration `0007_ambitious_synch.sql` before deploying public signup. It adds an index for
+selecting eligible due schedules without scanning every user. A fresh database needs all migrations.
 Verify no migrations remain and no foreign-key violations are returned. Migrations and secrets are
 external changes; a successful packaging dry run does not validate them.
 
@@ -96,8 +107,9 @@ resource IDs, migration names, pre-change D1 bookmark, aggregate metrics and out
    reviewed revision. Dry-run the actual local production config separately:
    `pnpm exec wrangler deploy --config wrangler.production.local.jsonc --env production --dry-run --outdir dist/production-config`.
 2. **Real staging identity and clients:** complete the [authenticated acceptance run](mcp-integration-testing.md)
-   with two distinct allowlisted Google accounts, a read-only grant, refresh, revocation and natural
-   expiry. Check consent denial, a nonallowlisted account, both intended ChatGPT connection paths,
+   with two distinct Google accounts, a read-only grant, refresh, revocation and natural
+   expiry. In public mode, verify a user outside the old list; in restricted mode, verify rejection
+   of an unlisted user. Check consent denial, both intended ChatGPT connection paths,
    and phone use. Local identity fixtures do not satisfy this gate.
 3. **Full financial behavior:** run the synthetic workflows in `fixtures/`, including income,
    duplicate review, budgets/preferences, savings, complete backup pagination and automatic recurring
@@ -108,7 +120,7 @@ resource IDs, migration names, pre-change D1 bookmark, aggregate metrics and out
    and schedule state together. Follow [operations](operations.md); packaging/startup timings are not
    hosted CPU measurements. No paid plan or service is enabled by this runbook.
 5. **Pilot policy:** review operator access, retained audit snapshots, backup protection, retention
-   and account-deletion limitations. Restrict invitations to the approved pilot audience.
+   and account-deletion limitations. Public signup does not implement these policies for the operator.
 
 Do not mark unexecuted steps passed. Stop rollout for failed or inconclusive security, correctness,
 CPU or recovery checks. The repository does not currently claim these hosted gates are complete.
@@ -136,9 +148,10 @@ history; do not delete receipts directly to clean up.
 
 After target checks pass, capture the production D1 bookmark and Worker version, then deliberately
 enable `triggers: { "crons": ["0 * * * *"] }` in the approved local config and deploy the same revision.
-Verify a due synthetic schedule records once for an allowlisted owner, leaves other owners untouched,
-and writes its matching receipt/schedule state. The allowlist scopes scheduled work; an HTTP argument
-cannot select owners. Revoking a client token does not cancel an existing standing schedule.
+Verify a due synthetic schedule records once for an eligible owner and writes its matching
+receipt/schedule state. Check restricted-owner exclusion in allowlist mode and bounded processing
+of newly registered users in public mode. An HTTP argument cannot select job owners. Revoking a client
+token does not cancel an existing standing schedule.
 
 Record the final deployment/version IDs, trigger state and safe check results. Keep invocation logs
 and tracing disabled as described in operations; query redaction and fixed application diagnostics
@@ -146,8 +159,9 @@ remain enabled. Continue monitoring aggregate CPU, errors and resource quotas af
 
 ## Stop and recover
 
-For repeated correctness/authentication failures, close access using a nonmatching allowlist sentinel
-and disable the production Cron trigger through the approved deployment process. Pause manual and
+For repeated correctness/authentication failures, set `GOOGLE_ACCESS_MODE: "allowlist"` with a
+nonmatching allowlist sentinel and disable the production Cron trigger through the approved
+deployment process. Changing the subject list alone does not close public-mode access. Pause manual and
 automatic writes before data recovery. A code rollback does not restore D1 or OAuth KV. Use the
 [recovery procedure](operations.md#recovery-procedure) with the production config and explicit
 `--env production`; never run staging commands against production IDs. Restoring D1 also restores
