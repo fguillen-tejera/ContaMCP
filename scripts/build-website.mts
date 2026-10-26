@@ -13,9 +13,13 @@ const assets = [
   'english.html',
   'styles.css',
   'main.js',
+  'legal.js',
+  'demo-dates.js',
   'locale.js',
   'favicon.svg',
   'openai-blossom-white.png',
+  'receipt-en.webp',
+  'receipt-es.webp',
 ];
 
 await rm(outputDirectory, { recursive: true, force: true });

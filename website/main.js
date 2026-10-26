@@ -1,4 +1,17 @@
+import { createDemoCalendar } from './demo-dates.js';
+
 const isEnglish = document.documentElement.lang === 'en';
+const demoLocale = isEnglish ? 'en-US' : 'es-MX';
+const demoTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+let demoCalendar = createDemoCalendar(new Date(), demoLocale, demoTimeZone);
+const header = document.querySelector('.header');
+function updateHeaderAppearance() {
+  header?.classList.toggle('is-scrolled', window.scrollY > 12);
+}
+updateHeaderAppearance();
+window.addEventListener('scroll', updateHeaderAppearance, { passive: true });
+window.addEventListener('pageshow', updateHeaderAppearance);
+
 const connectionUrl = document.querySelector('#connection-url');
 const copyConnectionUrl = document.querySelector('#copy-connection-url');
 const connectionStatus = document.querySelector('#copy-connection-status');
@@ -18,13 +31,6 @@ if (connectionUrl instanceof HTMLInputElement && copyConnectionUrl instanceof HT
     }
   });
 }
-const header = document.querySelector('.header');
-function updateHeaderAppearance() {
-  header?.classList.toggle('is-scrolled', window.scrollY > 12);
-}
-updateHeaderAppearance();
-window.addEventListener('scroll', updateHeaderAppearance, { passive: true });
-window.addEventListener('pageshow', updateHeaderAppearance);
 
 const demoAmounts = isEnglish
   ? {
@@ -41,8 +47,12 @@ const demoAmounts = isEnglish
       musicMinor: 1099n,
       rentMinor: 140000n,
       internetMinor: 5999n,
-      statementGroceriesMinor: 6850n,
-      statementCoffeeMinor: 450n,
+      statement: {
+        foodMinor: 42000n,
+        groceriesMinor: 56000n,
+        transportMinor: 24500n,
+        servicesMinor: 12999n,
+      },
     }
   : {
       currency: 'MXN',
@@ -58,8 +68,12 @@ const demoAmounts = isEnglish
       musicMinor: 19900n,
       rentMinor: 850000n,
       internetMinor: 49900n,
-      statementGroceriesMinor: 68500n,
-      statementCoffeeMinor: 6500n,
+      statement: {
+        foodMinor: 325000n,
+        groceriesMinor: 280000n,
+        transportMinor: 185000n,
+        servicesMinor: 99900n,
+      },
     };
 const monthlyFoodMinor = demoAmounts.foodMinor;
 const suggestedFoodBudgetMinor = demoAmounts.foodBudgetMinor;
@@ -90,6 +104,29 @@ const monthlyCategories = [
     color: '#deb985',
   },
 ];
+const statementCategories = [
+  {
+    title: isEnglish ? 'Food & drinks' : 'Comida y bebidas',
+    count: 8,
+    amount: demoAmounts.statement.foodMinor,
+  },
+  {
+    title: isEnglish ? 'Groceries' : 'Supermercado',
+    count: 5,
+    amount: demoAmounts.statement.groceriesMinor,
+  },
+  {
+    title: isEnglish ? 'Transport' : 'Transporte',
+    count: 4,
+    amount: demoAmounts.statement.transportMinor,
+  },
+  {
+    title: isEnglish ? 'Utilities' : 'Servicios',
+    count: 3,
+    amount: demoAmounts.statement.servicesMinor,
+  },
+];
+const statementCount = statementCategories.reduce((count, item) => count + item.count, 0);
 const monthlyTotal = monthlyCategories.reduce((total, item) => total + item.amountMinor, 0n);
 const savingsGoal = demoAmounts.savings;
 const savingsPercent = Number((savingsGoal.savedMinor * 100n) / savingsGoal.targetMinor);
@@ -120,6 +157,19 @@ if (savedExpenseAmount) savedExpenseAmount.textContent = formatAmount(demoAmount
 const expenseAmount = document.getElementById('demo-expense-amount');
 if (expenseAmount) expenseAmount.textContent = formatCurrencyAmount(demoAmounts.expenseMinor);
 
+function createUpcomingRows() {
+  const labels = {
+    music: { title: isEnglish ? 'Music' : 'Música', amount: demoAmounts.musicMinor },
+    rent: { title: isEnglish ? 'Rent' : 'Renta', amount: demoAmounts.rentMinor },
+    internet: { title: 'Internet', amount: demoAmounts.internetMinor },
+  };
+  return demoCalendar.upcomingPayments.map((payment) => ({
+    title: labels[payment.id].title,
+    detail: `${payment.label} · ${isEnglish ? 'Monthly' : 'Mensual'}`,
+    value: formatCurrencyAmount(labels[payment.id].amount),
+  }));
+}
+
 const scenarios = isEnglish
   ? {
       record: {
@@ -134,37 +184,21 @@ const scenarios = isEnglish
         prompt: `I got paid ${formatUserAmount(demoIncomeMinor)} today. Log it as salary.`,
         reply: 'Done, your income has been recorded.',
         followup: 'Want a breakdown of your income this month?',
-        suggestion: 'Show me my income for October.',
+        suggestion: 'Show me my income this month.',
       },
       month: {
         action: 'Checking this month’s expenses',
         prompt: 'How much did I spend this month?',
-        reply: 'Here’s your spending for October, through the 24th:',
+        reply: 'Here’s your spending so far this month:',
         followup: 'Want to compare your spending with last month?',
-        suggestion: 'Compare my spending with September.',
+        suggestion: 'Compare my spending with last month.',
       },
       recurring: {
         action: 'Checking recurring payments',
         prompt: 'What recurring payments do I have coming up?',
         reply: 'Here are your upcoming recorded recurring payments:',
-        rows: [
-          {
-            title: 'Music',
-            detail: 'Oct 28, 2026 · Monthly',
-            value: formatCurrencyAmount(demoAmounts.musicMinor),
-          },
-          {
-            title: 'Rent',
-            detail: 'Nov 1, 2026 · Monthly',
-            value: formatCurrencyAmount(demoAmounts.rentMinor),
-          },
-          {
-            title: 'Internet',
-            detail: 'Nov 7, 2026 · Monthly',
-            value: formatCurrencyAmount(demoAmounts.internetMinor),
-          },
-        ],
-        followup: 'Want to pause recording any of these?',
+        rows: createUpcomingRows(),
+        followup: 'Want to see the details of a payment?',
         suggestion: 'Show me the details for rent.',
       },
       plan: {
@@ -195,37 +229,21 @@ const scenarios = isEnglish
         prompt: `Registra mi sueldo de hoy: ${formatUserAmount(demoIncomeMinor)}.`,
         reply: 'Listo, tu ingreso quedó registrado.',
         followup: '¿Quieres ver el detalle de tus ingresos del mes?',
-        suggestion: 'Muéstrame mis ingresos de octubre.',
+        suggestion: 'Muéstrame mis ingresos de este mes.',
       },
       month: {
         action: 'Consultando los gastos del mes',
         prompt: '¿Cuánto gasté este mes?',
-        reply: 'Así van tus gastos de octubre, hasta el día 24:',
+        reply: 'Así van tus gastos de este mes:',
         followup: '¿Quieres comparar tus gastos con el mes pasado?',
-        suggestion: 'Compara mis gastos con septiembre.',
+        suggestion: 'Compara mis gastos con el mes pasado.',
       },
       recurring: {
         action: 'Consultando los pagos recurrentes',
         prompt: '¿Qué pagos recurrentes tengo próximos?',
         reply: 'Estos son tus próximos pagos recurrentes registrados:',
-        rows: [
-          {
-            title: 'Música',
-            detail: '28 oct 2026 · Mensual',
-            value: formatCurrencyAmount(demoAmounts.musicMinor),
-          },
-          {
-            title: 'Renta',
-            detail: '1 nov 2026 · Mensual',
-            value: formatCurrencyAmount(demoAmounts.rentMinor),
-          },
-          {
-            title: 'Internet',
-            detail: '7 nov 2026 · Mensual',
-            value: formatCurrencyAmount(demoAmounts.internetMinor),
-          },
-        ],
-        followup: '¿Quieres pausar el registro de alguno?',
+        rows: createUpcomingRows(),
+        followup: '¿Quieres ver el detalle de alguno?',
         suggestion: 'Muéstrame el detalle de la renta.',
       },
       plan: {
@@ -257,11 +275,11 @@ const expenseVariants = isEnglish
         action: 'Recording the receipt expense',
       },
       pdf: {
-        prompt: 'Find the expenses in this statement. Show me before saving them.',
-        action: 'Reading the statement',
-        reply: 'I found 3 expenses. Please review them before I save anything.',
-        followup: 'Should I record these 3 expenses?',
-        suggestion: 'Yes, record these 3 expenses.',
+        prompt: 'Record the expenses from my bank statement.',
+        action: 'Recording the statement expenses',
+        reply: `${statementCount} expenses saved.`,
+        followup: 'Want to see your updated monthly spending?',
+        suggestion: 'How much did I spend this month?',
       },
       voice: {
         ...scenarios.record,
@@ -276,11 +294,11 @@ const expenseVariants = isEnglish
         action: 'Registrando el gasto del recibo',
       },
       pdf: {
-        prompt: 'Busca los gastos de este estado de cuenta. Muéstramelos antes de guardarlos.',
-        action: 'Leyendo el estado de cuenta',
-        reply: 'Encontré 3 gastos. Revísalos antes de que los guarde.',
-        followup: '¿Registro estos 3 gastos?',
-        suggestion: 'Sí, registra estos 3 gastos.',
+        prompt: 'Registra los gastos de mi estado de cuenta.',
+        action: 'Registrando los gastos del estado de cuenta',
+        reply: `${statementCount} gastos guardados.`,
+        followup: '¿Quieres ver cómo quedan tus gastos del mes?',
+        suggestion: '¿Cuánto gasté este mes?',
       },
       voice: {
         ...scenarios.record,
@@ -384,27 +402,10 @@ function renderMonthlyChart() {
 }
 renderMonthlyChart();
 
-const statementEntries = [
-  {
-    date: isEnglish ? 'Oct 24' : '24 oct',
-    title: isEnglish ? 'Gas' : 'Gasolina',
-    amount: demoAmounts.expenseMinor,
-  },
-  {
-    date: isEnglish ? 'Oct 23' : '23 oct',
-    title: isEnglish ? 'Groceries' : 'Supermercado',
-    amount: demoAmounts.statementGroceriesMinor,
-  },
-  {
-    date: isEnglish ? 'Oct 22' : '22 oct',
-    title: isEnglish ? 'Coffee' : 'Café',
-    amount: demoAmounts.statementCoffeeMinor,
-  },
-];
 const statementRows = document.getElementById('demo-import-rows');
-for (const entry of statementEntries) {
+for (const entry of statementCategories) {
   const row = document.createElement('tr');
-  for (const value of [entry.date, entry.title, formatAmount(entry.amount)]) {
+  for (const value of [entry.title, String(entry.count), formatAmount(entry.amount)]) {
     const cell = document.createElement('td');
     cell.textContent = value;
     row.append(cell);
@@ -414,32 +415,33 @@ for (const entry of statementEntries) {
 const statementTotal = document.getElementById('demo-import-total');
 if (statementTotal)
   statementTotal.textContent = formatCurrencyAmount(
-    statementEntries.reduce((sum, entry) => sum + entry.amount, 0n),
+    statementCategories.reduce((sum, entry) => sum + entry.amount, 0n),
   );
-const receiptTotal = document.getElementById('demo-receipt-total');
-if (receiptTotal) receiptTotal.textContent = formatAmount(demoAmounts.expenseMinor);
 
-const upcomingList = document.getElementById('demo-upcoming-list');
-for (const item of scenarios.recurring.rows) {
-  const card = document.createElement('li');
-  const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  icon.setAttribute('class', 'icon');
-  icon.setAttribute('aria-hidden', 'true');
-  const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
-  use.setAttribute('href', '#repeat');
-  icon.append(use);
-  const details = document.createElement('div');
-  details.className = 'upcoming-details';
-  const title = document.createElement('strong');
-  title.textContent = item.title;
-  const date = document.createElement('span');
-  date.textContent = item.detail;
-  details.append(title, date);
-  const amount = document.createElement('strong');
-  amount.className = 'upcoming-amount';
-  amount.textContent = item.value;
-  card.append(icon, details, amount);
-  upcomingList?.append(card);
+function renderUpcomingPayments() {
+  const upcomingList = document.getElementById('demo-upcoming-list');
+  upcomingList?.replaceChildren();
+  for (const item of scenarios.recurring.rows) {
+    const card = document.createElement('li');
+    const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    icon.setAttribute('class', 'icon');
+    icon.setAttribute('aria-hidden', 'true');
+    const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+    use.setAttribute('href', '#repeat');
+    icon.append(use);
+    const details = document.createElement('div');
+    details.className = 'upcoming-details';
+    const title = document.createElement('strong');
+    title.textContent = item.title;
+    const date = document.createElement('span');
+    date.textContent = item.detail;
+    details.append(title, date);
+    const amount = document.createElement('strong');
+    amount.className = 'upcoming-amount';
+    amount.textContent = item.value;
+    card.append(icon, details, amount);
+    upcomingList?.append(card);
+  }
 }
 
 for (const [id, amount] of [
@@ -515,7 +517,13 @@ function renderScenario() {
   if (importView) importView.hidden = !isStatement;
   if (incomeView) incomeView.hidden = currentScenario !== 'income';
   if (insightsView) insightsView.hidden = currentScenario !== 'insights';
-  if (promptElement) promptElement.textContent = scenario.prompt;
+  const isVoice = isExpense && currentExpenseFormat === 'voice';
+  if (promptElement) {
+    promptElement.textContent = scenario.prompt;
+    promptElement.hidden = isVoice;
+  }
+  const voiceTranscript = document.getElementById('demo-voice-transcript');
+  if (voiceTranscript) voiceTranscript.textContent = expenseVariants.voice.prompt;
   if (reply) reply.textContent = scenario.reply;
   const followup = document.getElementById('demo-followup');
   if (followup) followup.textContent = scenario.followup;
@@ -531,13 +539,9 @@ function setPhase(phase) {
     toolLabel.textContent =
       phase === 'working'
         ? activeScenario().action
-        : currentScenario === 'record' && currentExpenseFormat === 'pdf'
-          ? isEnglish
-            ? 'Read attachment'
-            : 'Archivo leído'
-          : isEnglish
-            ? 'Used ContaMCP'
-            : 'Se usó ContaMCP';
+        : isEnglish
+          ? 'Used ContaMCP'
+          : 'Se usó ContaMCP';
   }
 }
 
@@ -627,8 +631,30 @@ function selectScenario(selectedTab, waitForEntrance = false) {
   void animateScenario(controller.signal, waitForEntrance);
 }
 
+function scrollDemoIntoView() {
+  if (!mobileViewport.matches) return;
+  const demoWindow = panel?.closest('.demo-window');
+  if (!demoWindow) return;
+  const bounds = demoWindow.getBoundingClientRect();
+  const targetTop = Math.max(0, header?.getBoundingClientRect().bottom ?? 0) + 16;
+  const viewportBottom = window.innerHeight - 16;
+  const availableHeight = viewportBottom - targetTop;
+  if (availableHeight <= 0) return;
+  const visibleHeight = Math.min(bounds.bottom, viewportBottom) - Math.max(bounds.top, targetTop);
+  // Keep the page still when most of the available demo area is already visible.
+  if (bounds.top >= targetTop && visibleHeight >= Math.min(bounds.height, availableHeight) * 0.8)
+    return;
+  window.scrollTo({
+    top: Math.max(0, window.scrollY + bounds.top - targetTop),
+    behavior: motionPreference.matches ? 'instant' : 'smooth',
+  });
+}
+
 for (const [index, tab] of tabs.entries()) {
-  tab.addEventListener('click', () => selectScenario(tab));
+  tab.addEventListener('click', () => {
+    selectScenario(tab);
+    scrollDemoIntoView();
+  });
   tab.addEventListener('keydown', (event) => {
     if (!(event instanceof KeyboardEvent)) return;
     let nextIndex;
@@ -654,9 +680,51 @@ for (const button of expenseFormats) {
     if (format !== 'text' && format !== 'receipt' && format !== 'pdf' && format !== 'voice') return;
     currentExpenseFormat = format;
     const expenseTab = tabs.find((tab) => tab.getAttribute('data-scenario') === 'record');
-    if (expenseTab) selectScenario(expenseTab);
+    if (expenseTab) {
+      selectScenario(expenseTab);
+      scrollDemoIntoView();
+    }
   });
 }
+
+function renderDemoDates() {
+  scenarios.income.suggestion = isEnglish
+    ? `Show me my income for ${demoCalendar.monthName}.`
+    : `Muéstrame mis ingresos de ${demoCalendar.monthName}.`;
+  scenarios.month.reply = isEnglish
+    ? `Here’s your spending for ${demoCalendar.monthName} so far:`
+    : `Así van tus gastos de ${demoCalendar.monthName}, hasta hoy:`;
+  scenarios.month.suggestion = isEnglish
+    ? `Compare my spending with ${demoCalendar.previousMonth}.`
+    : `Compara mis gastos con ${demoCalendar.previousMonth}.`;
+  scenarios.recurring.rows = createUpcomingRows();
+  renderUpcomingPayments();
+  const dates = {
+    today: demoCalendar.today,
+    month: demoCalendar.month,
+    range: demoCalendar.range,
+    goalMonth: demoCalendar.goalMonth,
+    statementFilename: demoCalendar.statementFilename,
+  };
+  for (const [name, label] of Object.entries(dates)) {
+    for (const element of document.querySelectorAll(`[data-demo-date="${name}"]`))
+      element.textContent = label;
+  }
+}
+
+function refreshDemoDates() {
+  const nextCalendar = createDemoCalendar(new Date(), demoLocale, demoTimeZone);
+  if (nextCalendar.todayKey === demoCalendar.todayKey) return;
+  demoCalendar = nextCalendar;
+  renderDemoDates();
+  if (hasPlayed) finishScenario();
+  else renderScenario();
+}
+renderDemoDates();
+renderScenario();
+// Recheck on wake and while open so a tab left overnight does not keep yesterday's range.
+window.setInterval(refreshDemoDates, 60_000);
+window.addEventListener('pageshow', refreshDemoDates);
 
 // The visitor's draft is independent of the scripted conversation.
 composer?.addEventListener('focus', finishScenario);
@@ -678,6 +746,7 @@ function updateComposerAvailability() {
 updateComposerAvailability();
 mobileViewport.addEventListener('change', updateComposerAvailability);
 document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) refreshDemoDates();
   if (document.hidden && panel?.dataset.phase !== 'complete') finishScenario();
 });
 motionPreference.addEventListener('change', () => {

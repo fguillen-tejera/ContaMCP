@@ -46,7 +46,7 @@
     "dev:website": "node --watch scripts/website.mts",
     "build:website": "node scripts/build-website.mts",
     "package:plugin": "node scripts/package-plugin.mts",
-    "test:website": "node --test scripts/website-locale-check.mts"
+    "test:website": "node --test scripts/website-locale-check.mts scripts/website-dates-check.mjs"
   },
   "dependencies": {
     "@cloudflare/workers-oauth-provider": "1.2.4",

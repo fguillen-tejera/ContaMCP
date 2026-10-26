@@ -2,10 +2,7 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { URL } from 'node:url';
 
-const assets = new Map<string, readonly [string, string]>([
-  ...['privacy', 'privacidad', 'support', 'soporte', 'terms', 'terminos'].map(
-    (name) => [`/${name}`, [`${name}.html`, 'text/html; charset=utf-8']] as const,
-  ),
+const assets = new Map([
   ['/', ['index.html', 'text/html; charset=utf-8']],
   ['/es', ['index.html', 'text/html; charset=utf-8']],
   ['/es/', ['index.html', 'text/html; charset=utf-8']],
@@ -13,9 +10,12 @@ const assets = new Map<string, readonly [string, string]>([
   ['/en/', ['english.html', 'text/html; charset=utf-8']],
   ['/styles.css', ['styles.css', 'text/css; charset=utf-8']],
   ['/main.js', ['main.js', 'text/javascript; charset=utf-8']],
+  ['/demo-dates.js', ['demo-dates.js', 'text/javascript; charset=utf-8']],
   ['/locale.js', ['locale.js', 'text/javascript; charset=utf-8']],
   ['/favicon.svg', ['favicon.svg', 'image/svg+xml']],
   ['/openai-blossom-white.png', ['openai-blossom-white.png', 'image/png']],
+  ['/receipt-en.webp', ['receipt-en.webp', 'image/webp']],
+  ['/receipt-es.webp', ['receipt-es.webp', 'image/webp']],
 ]);
 
 const server = createServer(async (request, response) => {

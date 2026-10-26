@@ -34,8 +34,21 @@
       <symbol id="thumb" viewBox="0 0 24 24">
         <path d="M7 10H3v11h4m0-11 5-8a3 3 0 0 1 2 3l-1 5h6a2 2 0 0 1 2 2l-2 7a3 3 0 0 1-3 2H7Z" />
       </symbol>
-      <symbol id="mark" viewBox="0 0 32 32">
-        <path d="M21 6a11 11 0 1 0 0 20M14 13h13M14 19h10" />
+      <symbol id="mark" viewBox="0 0 48 48">
+        <path
+          d="M35.5 11.3a17.2 17.2 0 1 0 0 25.4"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="4"
+          stroke-linecap="round"
+        />
+        <path
+          d="M21 20h11m-11 8h7"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="3.5"
+          stroke-linecap="round"
+        />
       </symbol>
       <symbol id="arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6" /></symbol>
       <symbol id="external" viewBox="0 0 24 24"><path d="M7 17 17 7M7 7h10v10" /></symbol>
@@ -108,7 +121,7 @@
             <svg aria-hidden="true" class="icon"><use href="#github" /></svg><span>GitHub</span>
           </a>
           <a class="button button-primary nav-cta" href="#get-started"
-            >Get started<svg aria-hidden="true" class="icon"><use href="#arrow" /></svg></a
+            >Install ContaMCP<svg aria-hidden="true" class="icon"><use href="#arrow" /></svg></a
           >
         </div>
       </nav>
@@ -131,7 +144,7 @@
           </p>
           <div class="hero-actions">
             <a class="button button-primary" href="#get-started"
-              >Get started<svg aria-hidden="true" class="icon"><use href="#arrow" /></svg></a
+              >Install ContaMCP<svg aria-hidden="true" class="icon"><use href="#arrow" /></svg></a
             ><a class="source-link" href="https://github.com/fguillen-tejera/ContaMCP"
               ><svg aria-hidden="true" class="icon"><use href="#github" /></svg>View on GitHub<svg
                 aria-hidden="true"
@@ -289,22 +302,16 @@
                 >
                   <div class="demo-transcript">
                     <div class="demo-attachment" id="demo-attachment" hidden>
-                      <div
-                        class="receipt-attachment"
-                        id="demo-receipt-attachment"
-                        hidden
-                        role="img"
-                        aria-label="Example gas receipt for $45"
-                      >
-                        <div class="receipt-paper" aria-hidden="true">
-                          <svg class="icon" aria-hidden="true"><use href="#input-pdf" /></svg>
-                          <strong>FUEL STOP</strong>
-                          <span>24 / 10 / 2026</span>
-                          <div class="receipt-rule"></div>
-                          <span>Fuel</span>
-                          <strong class="receipt-total" id="demo-receipt-total">$45.00</strong>
-                          <div class="receipt-barcode"></div>
-                        </div>
+                      <div class="receipt-attachment" id="demo-receipt-attachment" hidden>
+                        <img
+                          src="/receipt-en.webp"
+                          width="360"
+                          height="360"
+                          alt="Sample gas receipt totaling $45"
+                          loading="lazy"
+                          decoding="async"
+                        >
+                        <time class="receipt-date" data-demo-date="today">Today</time>
                       </div>
                       <div class="pdf-attachment" id="demo-pdf-attachment" hidden>
                         <span class="attachment-file-icon"
@@ -313,23 +320,21 @@
                           </svg></span
                         >
                         <span
-                          ><strong>statement-october.pdf</strong
+                          ><strong
+                            ><span data-demo-date="statementFilename">statement.pdf</span></strong
                           ><span class="attachment-meta">PDF · 124 KB</span></span
                         >
                       </div>
-                      <div
-                        class="voice-attachment"
-                        id="demo-voice-attachment"
-                        role="img"
-                        hidden
-                        aria-label="Example voice message, 6 seconds"
-                      >
-                        <svg class="icon" aria-hidden="true"><use href="#input-voice" /></svg>
-                        <span class="voice-waveform" aria-hidden="true"
-                          ><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i
-                          ><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i
-                          ><i></i><i></i><i></i><i></i><i></i></span
-                        ><span>0:06</span>
+                      <div class="voice-attachment" id="demo-voice-attachment" hidden>
+                        <div class="voice-audio" aria-hidden="true">
+                          <svg class="icon" aria-hidden="true"><use href="#input-voice" /></svg>
+                          <span class="voice-waveform" aria-hidden="true"
+                            ><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i
+                            ><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i
+                            ><i></i><i></i><i></i><i></i><i></i></span
+                          ><span>0:06</span>
+                        </div>
+                        <p class="voice-transcript" id="demo-voice-transcript"></p>
                       </div>
                     </div>
                     <div class="user-message" lang="en" id="demo-prompt">
@@ -358,34 +363,28 @@
                             <span id="demo-expense-amount">$45.00 USD</span>
                           </li>
                           <li><strong>Category:</strong> Transport</li>
-                          <li><strong>Date:</strong> October 24, 2026</li>
+                          <li><strong>Date:</strong> <time data-demo-date="today">Today</time></li>
                         </ul>
                       </section>
                       <section
                         class="import-response demo-visual"
                         id="demo-import"
-                        aria-label="Statement transactions to review"
+                        aria-label="Example saved statement expenses"
                         hidden
                       >
-                        <div class="import-heading">
-                          <h3>Expenses found</h3>
-                          <span>Awaiting your approval</span>
-                        </div>
+                        <span class="import-period"
+                          >Statement · <span data-demo-date="month">This month</span></span
+                        >
+                        <p class="import-total" id="demo-import-total"></p>
                         <table class="chat-table">
                           <thead>
                             <tr>
-                              <th scope="col">Date</th>
-                              <th scope="col">Expense</th>
+                              <th scope="col">Category</th>
+                              <th scope="col">Expenses</th>
                               <th scope="col">Amount</th>
                             </tr>
                           </thead>
                           <tbody id="demo-import-rows"></tbody>
-                          <tfoot>
-                            <tr>
-                              <th scope="row" colspan="2">Total</th>
-                              <td id="demo-import-total"></td>
-                            </tr>
-                          </tfoot>
                         </table>
                       </section>
                       <section
@@ -394,13 +393,15 @@
                         aria-label="Example income confirmation and monthly cash flow"
                         hidden
                       >
-                        <p class="income-description">Salary · October 24, 2026</p>
+                        <p class="income-description">
+                          Salary · <time data-demo-date="today">Today</time>
+                        </p>
                         <p class="income-highlight" id="demo-income-amount">+$4,200.00 USD</p>
                         <h3 class="chart-heading">Your month so far</h3>
                         <table class="chat-table income-summary">
                           <thead>
                             <tr>
-                              <th scope="col">October 2026</th>
+                              <th scope="col"><span data-demo-date="month">This month</span></th>
                               <th scope="col">USD</th>
                             </tr>
                           </thead>
@@ -428,7 +429,9 @@
                       >
                         <p class="monthly-total-label">Total spent this month</p>
                         <p class="monthly-total" id="demo-month-total">$1,044.99 USD</p>
-                        <p class="monthly-period">October 1–24, 2026</p>
+                        <p class="monthly-period">
+                          <span data-demo-date="range">Month to date</span>
+                        </p>
                         <h3 class="chart-heading">Spending by category</h3>
                         <div class="spending-chart-grid">
                           <svg
@@ -478,7 +481,7 @@
                       >
                         <div class="goal-heading">
                           <h3 id="demo-goal-title">Trip to Lisbon</h3>
-                          <span>December 2026</span>
+                          <span><span data-demo-date="goalMonth">In two months</span></span>
                         </div>
                         <div class="goal-amounts">
                           <strong id="demo-goal-saved">$1,200.00</strong
@@ -601,7 +604,7 @@
           </div>
           <figure
             class="records-example"
-            aria-label="Example of finding the same saved expense in a new ChatGPT conversation"
+            aria-label="Example of finding the same saved expense in another chat, weeks later"
           >
             <div class="records-thread">
               <div class="records-thread-heading">
@@ -621,7 +624,7 @@
                 <span class="records-client"
                   ><img src="/openai-blossom-white.png" width="28" height="28" alt="">ChatGPT</span
                 >
-                <span>New chat</span>
+                <span>Another chat, weeks later</span>
               </div>
               <p class="records-question">Find my last gas expense.</p>
               <div class="records-tool">
@@ -631,7 +634,9 @@
               <div class="records-entry">
                 <div>
                   <strong>Gas</strong
-                  ><span class="records-entry-meta">Transport · October 24, 2026</span>
+                  ><span class="records-entry-meta"
+                    >Transport · <time data-demo-date="today">Today</time></span
+                  >
                 </div>
                 <p>
                   <strong id="saved-expense-amount">$45.00</strong
@@ -704,8 +709,7 @@
       <section class="final-cta" id="get-started" data-reveal aria-labelledby="final-cta-title">
         <div class="container">
           <h2 id="final-cta-title">Track your finances<br>from your chat.</h2>
-          <p>Connect Conta: Personal Finance with Google and record your first transaction.</p>
-          <p>The public plugin listing is under review. You can connect the hosted service now.</p>
+          <p>Install ContaMCP, connect your assistant, and record your first transaction.</p>
           <div class="connection-setup">
             <ol class="connection-steps">
               <li>Open ChatGPT Plugins and choose <strong>Add custom MCP server</strong>.</li>
@@ -741,10 +745,8 @@
           <div class="final-cta-actions">
             <a
               class="button button-primary"
-              href="https://chatgpt.com/plugins"
-              target="_blank"
-              rel="noopener noreferrer"
-              >Open ChatGPT<svg aria-hidden="true" class="icon"><use href="#arrow" /></svg></a
+              href="https://github.com/fguillen-tejera/ContaMCP#deploy-your-own-instance"
+              >Install ContaMCP<svg aria-hidden="true" class="icon"><use href="#arrow" /></svg></a
             ><a
               class="source-link"
               href="https://github.com/fguillen-tejera/ContaMCP/blob/main/docs/authentication.md"
@@ -763,8 +765,7 @@
           ><span>Conta<span class="brand-muted">MCP</span></span></a
         ><span class="footer-tagline">Open-source financial tools for your AI.</span>
         <div>
-          <a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/support">Support</a
-          ><a href="https://github.com/fguillen-tejera/ContaMCP">GitHub</a
+          <a href="https://github.com/fguillen-tejera/ContaMCP">GitHub</a
           ><a href="https://github.com/fguillen-tejera/ContaMCP/tree/main/docs">Documentation</a
           ><a href="https://github.com/fguillen-tejera/ContaMCP/blob/main/LICENSE">MIT license</a>
         </div>
