@@ -1441,6 +1441,11 @@ h2 {
 .connection-steps li + li {
   margin-top: 8px;
 }
+.connection-setup > p {
+  max-width: none;
+  margin: 12px 0 0;
+  font-size: inherit;
+}
 .connection-setup label {
   display: block;
   margin: 20px 0 8px;

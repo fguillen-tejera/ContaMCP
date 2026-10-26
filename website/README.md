@@ -40,6 +40,8 @@ local reference files and are excluded from the public build.
 The page stays focused on the hero, interactive demo, saved-records example, open-source setup,
 and a final call to action with the connection steps above the footer: opening ChatGPT Plugins,
 naming the custom MCP server, and connecting with Google, plus a copyable production MCP URL.
+Both languages use three short steps, a separate `@Conta` chat prompt, and a “Connection link”
+label. The instructions retain “OAuth” to match ChatGPT's authentication setting.
 The final button opens ChatGPT Plugins for the hosted service. Privacy, terms, and support links
 remain available in each homepage footer and in the local preview. Self-hosting instructions
 remain in the open-source section.
