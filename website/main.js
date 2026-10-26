@@ -20,14 +20,14 @@ if (connectionUrl instanceof HTMLInputElement && copyConnectionUrl instanceof HT
     try {
       await navigator.clipboard.writeText(connectionUrl.value);
       if (connectionStatus)
-        connectionStatus.textContent = isEnglish ? 'Server URL copied.' : 'Dirección copiada.';
+        connectionStatus.textContent = isEnglish ? 'Link copied.' : 'Enlace copiado.';
     } catch {
       connectionUrl.focus();
       connectionUrl.select();
       if (connectionStatus)
         connectionStatus.textContent = isEnglish
-          ? 'Select and copy the server URL.'
-          : 'Selecciona y copia la dirección del servidor.';
+          ? 'Select and copy the link.'
+          : 'Selecciona y copia el enlace.';
     }
   });
 }
