@@ -40,8 +40,11 @@ local reference files and are excluded from the public build.
 The page stays focused on the hero, interactive demo, saved-records example, open-source setup,
 and a final call to action with the connection steps above the footer: opening ChatGPT Plugins,
 naming the custom MCP server, and connecting with Google, plus a copyable production MCP URL.
+The final button opens ChatGPT Plugins for the hosted service. Privacy, terms, and support links
+remain available in each homepage footer and in the local preview. Self-hosting instructions
+remain in the open-source section.
 On phones, the six demo tabs form three rows.
-The installation CTAs use “Instalar ContaMCP” / “Install ContaMCP”. Short text and voice expense
+The header and hero CTAs use “Instalar ContaMCP” / “Install ContaMCP”. Short text and voice expense
 examples use less transcript height on phones; charts, statements, and receipt examples retain
 their larger scrolling area. Desktop hero supporting copy uses 20px text (18px on tablets),
 section paragraphs use 17–18px, and demo messages use 14px. Mobile hero descriptions and section paragraphs use 17px text, demo messages use 14px,
@@ -131,7 +134,9 @@ does not deploy or provision resources. Stop it with Ctrl+C.
 
 `pnpm test:website` covers browser language selection, remembered choices, explicit links,
 preserved queries/anchors, blocked storage, local calendar days, leap years, and month/year
-rollovers. It also runs as part of `pnpm check`.
+rollovers. HTTP checks follow both homepages' policy links and public assets, verify the hosted
+ChatGPT connection CTA, and ensure the preview rejects private paths and writes. These checks
+also run as part of `pnpm check`.
 
 To publish an authorized website release, use the authenticated `fernandoguillen.apps@gmail.com`
 account and the explicit `secret-301000` project:
