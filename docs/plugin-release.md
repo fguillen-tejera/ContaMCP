@@ -20,7 +20,7 @@ pnpm install --frozen-lockfile
 pnpm check
 pnpm build:website
 pnpm package:plugin
-unzip -l dist/plugins/contamcp-0.1.3.zip
+unzip -l dist/plugins/contamcp-0.1.4.zip
 ```
 
 The build archives only three explicit files from `plugins/contamcp/`, rejects symlinks in those
@@ -29,7 +29,7 @@ The ZIP has `plugin.json` and `mcp.json` at its root. Build outputs remain ignor
 Do not add `.dev.vars*`, `.wrangler/`, local Wrangler configuration, reviewer credentials, account
 identifiers, tokens, callback URLs, production exports or private recordings to the public package.
 
-The package is version `0.1.3`; this is a submission draft, not an approval claim. Change the version
+The package is version `0.1.4`; this is a submission candidate, not an approval claim. Change the version
 when uploading a revised package. Update the listing fields in source rather than relying on edits
 in the portal. Keep the public display name aligned with the product; resolve any naming finding
 with the reviewer rather than advertising OpenAI endorsement.
@@ -69,9 +69,11 @@ Enter credentials and private sign-in instructions only in the portal's protecte
 Keep that account available for later reviews. Do not write credentials in this document, the
 manifest, issues, PR descriptions, recordings or public chat.
 
-The directory display name is **Conta — Income & Expenses**, in **Finance**. The repository,
-package identifier and hosted service remain ContaMCP. This addresses the portal's automated
-request to remove “MCP” from the display name without changing the server address.
+The directory display name is **Conta: Personal Finance**, with the subtitle
+**Income, expenses & budgets**, in **Finance**. The Spanish subtitle is
+**Ingresos, gastos y presupuesto**. The repository, package identifier and hosted service remain
+ContaMCP. The display name follows the portal's requirement to omit “MCP”; this listing-only rename
+does not change the server address, authentication, permissions, reviewer account or recorded workflows.
 
 The package supplies exactly five positive cases and three negative cases. Run positives in order in the
 dedicated account: create, correct, cash flow, future recurring schedule, export. They use
@@ -125,6 +127,9 @@ the package. Local checks alone do not complete the hosted gates.
    account holder.
 2. Open Plugins and upload the ZIP. Select the verified publishing identity when required. Keep
    the assigned draft/plugin identity for later uploads; do not create duplicate listings.
+   If a package is already in review, cancel that review before replacing it, then upload and
+   resubmit the revised package. Each resubmission starts a new review; do not assume an earlier
+   review estimate will carry over. See [OpenAI's version-review process](https://developers.openai.com/plugins/deploy/app-review#submitting-new-versions-for-review).
 3. Review metadata findings. Connect the single MCP server using OAuth/DCR and the declared
    ledger scopes. Never select unauthenticated access for this protected service.
 4. Host the exact domain challenge as plain text at the HTTPS URL specified by the portal,
