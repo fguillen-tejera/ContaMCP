@@ -20,7 +20,7 @@ pnpm install --frozen-lockfile
 pnpm check
 pnpm build:website
 pnpm package:plugin
-unzip -l dist/plugins/contamcp-0.1.2.zip
+unzip -l dist/plugins/contamcp-0.1.3.zip
 ```
 
 The build archives only three explicit files from `plugins/contamcp/`, rejects symlinks in those
@@ -29,7 +29,7 @@ The ZIP has `plugin.json` and `mcp.json` at its root. Build outputs remain ignor
 Do not add `.dev.vars*`, `.wrangler/`, local Wrangler configuration, reviewer credentials, account
 identifiers, tokens, callback URLs, production exports or private recordings to the public package.
 
-The package is version `0.1.2`; this is a submission draft, not an approval claim. Change the version
+The package is version `0.1.3`; this is a submission draft, not an approval claim. Change the version
 when uploading a revised package. Update the listing fields in source rather than relying on edits
 in the portal. Keep the public display name aligned with the product; resolve any naming finding
 with the reviewer rather than advertising OpenAI endorsement.
@@ -73,8 +73,7 @@ The directory display name is **Conta — Income & Expenses**, in **Finance**. T
 package identifier and hosted service remain ContaMCP. This addresses the portal's automated
 request to remove “MCP” from the display name without changing the server address.
 
-The package supplies exactly five positive cases and three negative cases. These are planned
-acceptance cases, not evidence that they have already passed. Run positives in order in the
+The package supplies exactly five positive cases and three negative cases. Run positives in order in the
 dedicated account: create, correct, cash flow, future recurring schedule, export. They use
 `2099-12-20` for the ledger and `2099-12-21` as the future schedule date so no schedule is currently
 due. Keep that ledger date exclusive to cases 1-3. The expected cash flow is income `100000`,
@@ -103,9 +102,19 @@ or financial contents into public evidence.
 - Verify discovery, authentication failures, rate limits, the four public URLs and secure HTTPS.
   Follow [production operations](production.md) and the recorded recovery procedures.
 
-`review.demo_recording_url` is deliberately absent until a real recording is available. Test
-credentials, private reviewer instructions and identity-verification details are deliberately
-absent from the package. Local checks alone do not complete these gates.
+The packaged `review.demo_recording_url` points to the actual
+[synthetic walkthrough](https://github.com/fguillen-tejera/ContaMCP/releases/download/review-demo-2026-10-25/conta-review-demo-0.1.2.mp4),
+kept as a GitHub prerelease review asset so website deployments cannot remove it. The MP4 starts
+after sign-in, uses a separate synthetic ledger, and has no audio track. It does not represent an
+OpenAI directory approval or publication.
+
+The operator completed all eight cases in ChatGPT on October 25, 2026 against production service
+revision `3ffc294130f9ce9a84f69089a9337fc5f960efb3`. A fresh phone conversation retrieved the corrected
+synthetic expense. The CSV and retained audit versions were independently checked. This records
+that hosted review run; each deployment and later behavior change needs its own validation.
+Inspect replacement recordings before publishing them and version the package when their URL changes.
+Test credentials, private reviewer instructions and identity-verification details remain absent from
+the package. Local checks alone do not complete the hosted gates.
 
 ## Portal submission
 
