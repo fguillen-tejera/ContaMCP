@@ -25,7 +25,11 @@ extends behind the header so the top of the page blends continuously. Anchor off
 the header on desktop and phones.
 
 The page stays focused on the hero, interactive demo, saved-records example, open-source setup,
-and a brief final call to action above the footer. On phones, the six demo tabs form three rows.
+and a connection guide above the footer. The guide opens ChatGPT Plugins, provides a copyable
+production MCP URL, and explains OAuth/Google connection while the public listing is in review.
+It does not require self-hosting or use an undocumented URL-prefill parameter. After publication,
+point the primary calls to action at the public plugin listing and remove the review notice;
+the listing already contains the MCP server configuration. On phones, the six demo tabs form three rows.
 The saved-records section illustrates finding the same expense in a new ChatGPT conversation,
 using synthetic data and an amount formatted from integer cents. Section dividers span the viewport;
 inner containers keep the text and cards aligned with the rest of the page.

@@ -1,4 +1,23 @@
 const isEnglish = document.documentElement.lang === 'en';
+const connectionUrl = document.querySelector('#connection-url');
+const copyConnectionUrl = document.querySelector('#copy-connection-url');
+const connectionStatus = document.querySelector('#copy-connection-status');
+if (connectionUrl instanceof HTMLInputElement && copyConnectionUrl instanceof HTMLButtonElement) {
+  copyConnectionUrl.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(connectionUrl.value);
+      if (connectionStatus)
+        connectionStatus.textContent = isEnglish ? 'Server URL copied.' : 'Dirección copiada.';
+    } catch {
+      connectionUrl.focus();
+      connectionUrl.select();
+      if (connectionStatus)
+        connectionStatus.textContent = isEnglish
+          ? 'Select and copy the server URL.'
+          : 'Selecciona y copia la dirección del servidor.';
+    }
+  });
+}
 const header = document.querySelector('.header');
 function updateHeaderAppearance() {
   header?.classList.toggle('is-scrolled', window.scrollY > 12);

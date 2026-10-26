@@ -66,8 +66,10 @@ error hook. DCR remains a standard supported path, including the current OpenAI 
 
 ### ChatGPT: plugin or manually added MCP server
 
-In Google-only deployments, both ChatGPT connection methods use the same direct path: **Connect in ChatGPT → Google sign-in →
-back to ChatGPT**. ContaMCP preapproves delivery of authorization codes to ChatGPT's documented
+Both ChatGPT connection methods default to **Connect in ChatGPT → Google sign-in →
+back to ChatGPT**, including when optional email accounts are configured. ChatGPT's own connection
+confirmation and Google's account/consent screens still apply. Provisioned email users explicitly
+select the email flow through `/login` first, as described below. ContaMCP preapproves delivery of authorization codes to ChatGPT's documented
 callback addresses, after validating the OAuth request and checking its stored client registration:
 - `https://chatgpt.com/connector_platform_oauth_redirect`
 - `https://chatgpt.com/connector/oauth/{callback_id}`, where the opaque ID contains ASCII letters,
@@ -96,7 +98,7 @@ ordinary approval page until reviewed. See [OpenAI's callback documentation](htt
 
 ### Other MCP apps
 
-In Google-only deployments, the connection screen has one **Connect with Google** action and a Cancel button. It identifies
+By default, the connection screen has one **Connect with Google** action and a Cancel button. It identifies
 which app is connecting, summarizes read/manage access in plain language, and shows the return host.
 There are no scope checkboxes, technical permission labels, or per-feature decisions. Clicking Connect
 approves exactly the validated request stored by the server and redirects immediately to Google.
@@ -149,12 +151,18 @@ by ContaMCP. The application checks the allowed UID after verifying Firebase's s
 creating another Firebase account does not grant it ledger access. Keep the deployment on its
 approved plan; do not enable paid Identity Platform features or upgrade billing for this flow.
 
-When enabled, both ChatGPT and other MCP clients see Google and provisioned email sign-in choices
-on the existing server-bound authorization page. Google users should keep choosing Google to retain
-their ledger. The email form is explicitly for a ContaMCP password, not a Google password. Each new
-connection asks for sign-in rather than silently choosing Google through remembered consent.
-`/login` explains how to start sign-in from an OAuth-capable assistant; it does not accept passwords
-without a validated client authorization request.
+Provisioned email users first visit `/login` in the same browser, then start Connect in their
+assistant. This page sets a Secure, HttpOnly, SameSite=Lax, host-only `__Host-conta-email` preference
+for up to ten minutes. The next validated authorization request consumes it and shows the existing
+Google/email form instead of the direct Google path. Return to `/login` before each new email
+connection. Normal ChatGPT connections continue directly to Google; other clients retain remembered
+Google approval. The preference is deliberately untrusted: it selects UI, carries no identity or
+permissions, and cannot authorize a request. PKCE/client validation happens before it is consumed.
+
+Google users should keep choosing Google to retain their ledger. The email form is explicitly for a
+ContaMCP password, not a Google password. `/login` accepts no credentials; the password form remains
+bound to a validated client authorization request. Failed-password retries keep their own fresh
+browser-bound consent transaction and do not require revisiting `/login`.
 
 The browser submits email and password only over HTTPS to `/authorize`, using the OAuth provider's
 single-use, browser-bound consent handle. The Worker sends them to Firebase's fixed
