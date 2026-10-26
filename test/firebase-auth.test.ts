@@ -243,7 +243,29 @@ describe('Firebase OAuth and owner isolation', () => {
     expect(started.response.headers.get('Content-Security-Policy')).toContain(
       "frame-ancestors 'none'",
     );
+    expect(started.response.headers.get('Content-Security-Policy')).toContain(
+      "form-action 'self' https://accounts.google.com https://chatgpt.com https://platform.openai.com;",
+    );
   });
+
+  it.each([
+    [
+      'https://client.example/callback?next=https://untrusted.example;script-src=*',
+      'https://client.example',
+    ],
+    ['http://127.0.0.1:48117/callback', 'http://127.0.0.1:48117'],
+  ])(
+    'allows a validated OAuth form return without accepting query directives: %s',
+    async (redirect, origin) => {
+      const started = await begin(config(), redirect);
+      const policy = started.response.headers.get('Content-Security-Policy');
+      expect(policy).toContain(`form-action 'self' https://accounts.google.com ${origin};`);
+      expect(policy).not.toContain('https://untrusted.example');
+      expect(policy).not.toContain('script-src=*');
+      expect(policy).not.toContain('https://platform.openai.com');
+      expect(policy).toContain("default-src 'none'");
+    },
+  );
 
   it('completes PKCE OAuth into a separate ledger and honors immediate UID removal', async () => {
     mockFirebase(await idToken());
@@ -383,6 +405,9 @@ describe('Firebase OAuth and owner isolation', () => {
     const failed = await signIn(started);
     expect(failed.status).toBe(401);
     expect(failed.headers.get('Referrer-Policy')).toBe('strict-origin');
+    expect(failed.headers.get('Content-Security-Policy')).toContain(
+      "form-action 'self' https://accounts.google.com https://client.example;",
+    );
     const html = await failed.text();
     expect(html).toContain('role="alert"');
     expect(html).not.toContain(credentials.email);
