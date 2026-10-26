@@ -3,6 +3,7 @@ export type DiagnosticEvent =
   | 'request_failed'
   | 'authorization_failed'
   | 'google_verification_failed'
+  | 'firebase_verification_failed'
   | 'oauth_rejected'
   | 'tool_failed';
 

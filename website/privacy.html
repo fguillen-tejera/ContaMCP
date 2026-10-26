@@ -38,6 +38,14 @@
         profile. Google processes your sign-in under its own privacy policy.
       </p>
       <p>
+        Optional provisioned email/password accounts use Google Firebase Authentication, which
+        manages the account email and password authentication. The MCP service processes your email
+        and password transiently to sign in with Firebase, verifies the returned identity, and
+        retains the stable Firebase user identifier and sign-in provider. It does not store your
+        email, password or Firebase tokens in the financial database or assistant grants. These
+        accounts have separate ledgers and are not linked to Google accounts by email.
+      </p>
+      <p>
         The hosted service stores the financial information you choose to record: entries,
         descriptions, amounts, dates, recurring instructions, savings goals, budgets and
         preferences. It also stores original versions and mutation receipts needed for audit history
@@ -52,9 +60,10 @@
       </p>
       <p>
         Cloudflare hosts the MCP service, financial database and authorization storage. Google
-        Firebase hosts this website. Your chosen assistant, such as ChatGPT, receives the
-        information returned by tools you authorize; that provider has its own data practices. Avoid
-        recording information you do not want shared with that assistant.
+        Firebase hosts this website and provides the optional email authentication. Your chosen
+        assistant, such as ChatGPT, receives the information returned by tools you authorize; that
+        provider has its own data practices. Avoid recording information you do not want shared with
+        that assistant.
       </p>
       <p>
         ContaMCP does not include advertising or marketing analytics. Application diagnostics use

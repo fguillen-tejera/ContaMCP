@@ -57,6 +57,13 @@
       "when": 1792952797166,
       "tag": "0007_ambitious_synch",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1792971797732,
+      "tag": "0008_spooky_flatman",
+      "breakpoints": true
     }
   ]
 }

@@ -5,3 +5,8 @@ GOOGLE_CLIENT_SECRET=
 # Comma-separated stable Google sub values, never emails. Required for hosted access and scheduled jobs
 # in the default allowlist mode. For public signup, set GOOGLE_ACCESS_MODE to public in Wrangler vars.
 ALLOWED_GOOGLE_SUBJECTS=
+# Optional provisioned email/password accounts. Set FIREBASE_PROJECT_ID in Wrangler vars.
+# The Firebase Web API key identifies the project; never put an account password here.
+FIREBASE_WEB_API_KEY=
+# Comma-separated Firebase UIDs, not emails. No Firebase identity is accepted without this list.
+FIREBASE_ALLOWED_UIDS=

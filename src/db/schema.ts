@@ -16,6 +16,9 @@ import type { Budget, Preferences } from '../domain/insights';
 export const users = sqliteTable('users', {
   id: text('id').primaryKey(),
   googleSubject: text('google_subject').notNull().unique(),
+  authProvider: text('auth_provider', { enum: ['google', 'firebase'] })
+    .notNull()
+    .default('google'),
   createdAt: text('created_at').notNull(),
 });
 

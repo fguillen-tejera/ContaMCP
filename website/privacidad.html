@@ -39,6 +39,15 @@
         conforme a su propio aviso de privacidad.
       </p>
       <p>
+        Las cuentas de correo y contraseña creadas por el operador usan Google Firebase
+        Authentication, que administra el correo y la autenticación por contraseña. El servicio MCP
+        procesa estos datos de forma transitoria para iniciar sesión con Firebase, verifica la
+        identidad devuelta y conserva el identificador estable de Firebase y el proveedor de inicio
+        de sesión. No guarda el correo, la contraseña ni los tokens de Firebase en la base de datos
+        financiera o las autorizaciones del asistente. Estas cuentas tienen registros separados y no
+        se vinculan con las cuentas de Google por su correo.
+      </p>
+      <p>
         El servicio guarda la información financiera que decides registrar: movimientos,
         descripciones, importes, fechas, instrucciones recurrentes, metas de ahorro, presupuestos y
         preferencias. También conserva versiones originales y comprobantes de cambios necesarios
@@ -53,9 +62,10 @@
       </p>
       <p>
         Cloudflare aloja el servicio MCP, la base de datos financiera y las autorizaciones. Google
-        Firebase aloja este sitio. Tu asistente, como ChatGPT, recibe la información que devuelven
-        las herramientas que autorizas y tiene sus propias prácticas de datos. Evita registrar
-        información que no quieras compartir con ese asistente.
+        Firebase aloja este sitio y proporciona el inicio de sesión opcional con correo. Tu
+        asistente, como ChatGPT, recibe la información que devuelven las herramientas que autorizas
+        y tiene sus propias prácticas de datos. Evita registrar información que no quieras compartir
+        con ese asistente.
       </p>
       <p>
         ContaMCP no incluye publicidad ni analítica de marketing. Los diagnósticos de la aplicación

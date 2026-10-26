@@ -1,4 +1,4 @@
-import { and, inArray, sql } from 'drizzle-orm';
+import { and, eq, inArray, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { todayInMexico } from '../domain/expense';
 import { recurringEntries, users } from './schema';
@@ -11,7 +11,7 @@ export async function automaticRecordingOwners(binding: D1Database, subjects: re
   const owners = await drizzle(binding)
     .select({ id: users.id })
     .from(users)
-    .where(inArray(users.googleSubject, allowed))
+    .where(and(eq(users.authProvider, 'google'), inArray(users.googleSubject, allowed)))
     .orderBy(users.id);
   return owners.map((owner) => owner.id);
 }

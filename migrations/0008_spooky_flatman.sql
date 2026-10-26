@@ -1,0 +1,1 @@
+ALTER TABLE `users` ADD `auth_provider` text DEFAULT 'google' NOT NULL;

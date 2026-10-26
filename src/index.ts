@@ -145,7 +145,8 @@ export default {
     secured.headers.set('Cache-Control', 'no-store');
     // no-referrer makes native form POSTs send Origin: null, blocking consent.
     const isConsentPage =
-      request.method === 'GET' && new URL(request.url).pathname === '/authorize';
+      new URL(request.url).pathname === '/authorize' &&
+      response.headers.get('Content-Type')?.startsWith('text/html');
     secured.headers.set('Referrer-Policy', isConsentPage ? 'strict-origin' : 'no-referrer');
     secured.headers.set('X-Content-Type-Options', 'nosniff');
     secured.headers.set('X-Request-Id', diagnostic.requestId);
