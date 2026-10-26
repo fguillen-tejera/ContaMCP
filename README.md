@@ -185,7 +185,9 @@ The template and dry run do not establish hosted readiness or configure a Google
 
 See [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), and the
 [public release checklist](docs/open-source-release.md). MIT licensed; dependencies retain
-their own MIT/Apache licenses. No third-party source code or data is redistributed.
+their own MIT/Apache licenses. No third-party source code or data is redistributed. The marketing
+website includes an official OpenAI logo under its brand terms; see
+[website attribution](website/README.md).
 
 ## Marketing website
 

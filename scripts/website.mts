@@ -13,12 +13,16 @@ const assets = new Map<string, readonly [string, string]>([
   ['/en/', ['english.html', 'text/html; charset=utf-8']],
   ['/styles.css', ['styles.css', 'text/css; charset=utf-8']],
   ['/main.js', ['main.js', 'text/javascript; charset=utf-8']],
+  ['/legal.js', ['legal.js', 'text/javascript; charset=utf-8']],
+  ['/demo-dates.js', ['demo-dates.js', 'text/javascript; charset=utf-8']],
   ['/locale.js', ['locale.js', 'text/javascript; charset=utf-8']],
   ['/favicon.svg', ['favicon.svg', 'image/svg+xml']],
   ['/openai-blossom-white.png', ['openai-blossom-white.png', 'image/png']],
+  ['/receipt-en.webp', ['receipt-en.webp', 'image/webp']],
+  ['/receipt-es.webp', ['receipt-es.webp', 'image/webp']],
 ]);
 
-const server = createServer(async (request, response) => {
+export const websiteServer = createServer(async (request, response) => {
   const pathname = new URL(request.url ?? '/', 'http://localhost').pathname;
   const asset = assets.get(pathname);
   if (!asset || (request.method !== 'GET' && request.method !== 'HEAD')) {
@@ -42,6 +46,8 @@ const server = createServer(async (request, response) => {
   }
 });
 
-server.listen(4321, '127.0.0.1', () => {
-  console.info('ContaMCP website → http://localhost:4321');
-});
+if (import.meta.main) {
+  websiteServer.listen(4321, '127.0.0.1', () => {
+    console.info('ContaMCP website → http://localhost:4321');
+  });
+}

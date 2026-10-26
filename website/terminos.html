@@ -8,14 +8,42 @@
     <link rel="canonical" href="https://contamcp.web.app/terminos">
     <link rel="alternate" hreflang="en" href="https://contamcp.web.app/terms">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;450;500;550;600;650;700;750&display=swap"
+      rel="stylesheet"
+    >
     <link rel="stylesheet" href="/styles.css">
     <script src="/locale.js"></script>
+    <script src="/legal.js" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#main">Saltar al contenido</a>
+    <svg class="icon-definitions" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <symbol id="mark" viewBox="0 0 48 48">
+        <path
+          d="M35.5 11.3a17.2 17.2 0 1 0 0 25.4"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="4"
+          stroke-linecap="round"
+        />
+        <path
+          d="M21 20h11m-11 8h7"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="3.5"
+          stroke-linecap="round"
+        />
+      </symbol>
+    </svg>
     <header class="header">
       <nav class="nav container" aria-label="Navegación principal">
-        <a class="brand" href="/es">Conta<span class="brand-muted">MCP</span></a>
+        <a class="brand" href="/es" aria-label="Inicio de ContaMCP"
+          ><svg aria-hidden="true"><use href="#mark" /></svg
+          ><span>Conta<span class="brand-muted">MCP</span></span></a
+        >
         <div class="nav-links">
           <a class="language-switch" href="/terms" hreflang="en" lang="en">EN</a
           ><a href="/es">Inicio</a>

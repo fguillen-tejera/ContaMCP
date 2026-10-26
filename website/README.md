@@ -19,17 +19,37 @@ localized examples, not currency conversions of real records. User messages and 
 use amounts such as `$45` or `$450` without currency names or codes. Assistant results include a
 currency code where it clarifies the figures. The compatibility strip keeps `MXN · USD · EUR`.
 
+`demo-dates.js` resolves the current day in the visitor's browser timezone and formats dates in
+the selected website language. Examples use today's date, the current month through today,
+the previous calendar month for comparisons, future billing dates, and a savings target two
+calendar months ahead. Upcoming payments are sorted by date. Statement filenames include the
+current month and year. Receipt photographs have no embedded date; their captions use today's
+date. Dates refresh after midnight while open and when returning to the page. No backend or
+network request supplies these dates, and demo amounts remain synthetic fixtures.
+
 The sticky header contains the language switch, GitHub link, and getting-started CTA. It is transparent
 at the top and gains a flat translucent background after scrolling, without blur. The hero backdrop
 extends behind the header so the top of the page blends continuously. Anchor offsets leave room for
 the header on desktop and phones.
 
+The ContaMCP mark is the approved Ledger C concept: a rounded C with two inset ledger lines.
+Both localized pages use the same 48-unit SVG symbol for the header, footer, and composer badge.
+`favicon.svg` uses the same geometry on a dark rounded background. Logo explorations remain
+local reference files and are excluded from the public build.
+
 The page stays focused on the hero, interactive demo, saved-records example, open-source setup,
-and a connection guide above the footer. The guide opens ChatGPT Plugins, provides a copyable
-production MCP URL, and explains OAuth/Google connection while the public listing is in review.
-It does not require self-hosting or use an undocumented URL-prefill parameter. After publication,
-point the primary calls to action at the public plugin listing and remove the review notice;
-the listing already contains the MCP server configuration. On phones, the six demo tabs form three rows.
+and a final call to action with the connection steps above the footer: opening ChatGPT Plugins,
+naming the custom MCP server, and connecting with Google, plus a copyable production MCP URL.
+The final button opens ChatGPT Plugins for the hosted service. Privacy, terms, and support links
+remain available in each homepage footer and in the local preview. Self-hosting instructions
+remain in the open-source section.
+On phones, the six demo tabs form three rows.
+The header and hero CTAs use “Instalar ContaMCP” / “Install ContaMCP”. Short text and voice expense
+examples use less transcript height on phones; charts, statements, and receipt examples retain
+their larger scrolling area. Desktop hero supporting copy uses 20px text (18px on tablets),
+section paragraphs use 17–18px, and demo messages use 14px. Mobile hero descriptions and section paragraphs use 17px text, demo messages use 14px,
+and secondary labels generally use 12px. Demo tabs retain two columns and wrap longer labels;
+transcript heights leave space for the larger type while preserving page scroll chaining.
 The saved-records section illustrates finding the same expense in a new ChatGPT conversation,
 using synthetic data and an amount formatted from integer cents. Section dividers span the viewport;
 inner containers keep the text and cards aligned with the rest of the page.
@@ -48,6 +68,15 @@ inner containers keep the text and cards aligned with the rest of the page.
   uses a green amount and exact monthly cash-flow summary. The monthly response has a total, an animated SVG donut, and
   category amounts; recurring payments use dated cards, and savings use an accessible progress bar.
   Insights reuse the same food spending fixture and compare it with an optional next-month target.
+  The expense demo has Text, Receipt, PDF, and Voice format buttons. Receipt and voice examples
+  illustrate the same gas expense; the voice transcription sits in italics inside the audio bubble.
+  The statement concept confirms 20 saved expenses, with category counts and an exact total.
+  The formats use manual selection and keep the existing conversation animation; they do not autoplay
+  from one format to the next. Attachments and waveforms are static synthetic illustrations: there
+  is no file upload, microphone access, document extraction, or bulk save implementation. This local
+  concept does not establish support for importing statements into the production ledger.
+  The receipt thumbnails are generated sample photographs, optimized to WebP; see
+  [receipt asset paths and generation prompt](receipt-assets.md).
   The potential reduction is calculated in integer cents; no budget is set by the demonstration.
   Savings amounts and progress also derive from a synthetic fixture in integer cents. Monthly amounts come from one synthetic
   fixture in integer cents, with exact totals and approximate chart geometry. All examples are fixed data, with no model calls or financial mutations. The composer
@@ -68,6 +97,10 @@ work. Focusing the composer or hiding the page finishes the sequence without cha
 preferences show complete results immediately and disable the entrance/scroll animations. Lower
 sections reveal once as they enter view; the full page remains readable without JavaScript.
 Scrolling past either end of the demo conversation continues scrolling the surrounding page.
+On phones, clicking a task or expense-format pill brings the demo below the sticky header when
+less than 80% of its available viewing area is visible. An already well-positioned demo stays still.
+This page scroll uses smooth motion unless reduced motion is requested. Initial playback and arrow-key
+tab navigation do not trigger page scrolling.
 
 Refresh after editing website files. The Node watcher restarts the server when its source changes.
 Use `pnpm check` for formatting, lint, strict server/browser type checks, and the existing ledger
@@ -83,7 +116,7 @@ The root `firebase.json` targets the reserved Hosting site
 and Hosting are enabled in that project. Both pages include canonical URLs and absolute alternate
 language links for the public domain.
 
-`pnpm build:website` copies only the eleven public assets into `dist/website`; documentation and
+`pnpm build:website` copies only the seventeen public assets into `dist/website`; documentation and
 development configuration are excluded. Hosting serves that bundle and preserves the local preview's
 security headers. `/es/` and `/index.html` redirect to `/es`; `/en/` and `/english.html` redirect
 to `/en`. Unversioned assets must
@@ -100,7 +133,10 @@ Open <http://127.0.0.1:4322> or either explicit language page. The emulator uses
 does not deploy or provision resources. Stop it with Ctrl+C.
 
 `pnpm test:website` covers browser language selection, remembered choices, explicit links,
-preserved queries/anchors, and blocked storage. It also runs as part of `pnpm check`.
+preserved queries/anchors, blocked storage, local calendar days, leap years, and month/year
+rollovers. HTTP checks follow both homepages' policy links and public assets, verify the hosted
+ChatGPT connection CTA, and ensure the preview rejects private paths and writes. These checks
+also run as part of `pnpm check`.
 
 To publish an authorized website release, use the authenticated `fernandoguillen.apps@gmail.com`
 account and the explicit `secret-301000` project:
@@ -123,30 +159,3 @@ verified one-click connection. It includes no analytics, registration, or produc
 [brand guidelines](https://openai.com/brand/). The asset and ChatGPT name belong to OpenAI and are
 not covered by this repository's MIT license. They identify the compatible client in the demo and
 compatibility row; ContaMCP is an independent project.
-
-## Privacy, terms and support
-
-The marketing pages link to `/privacy`, `/terms` and `/support` in English, with `/privacidad`,
-`/terminos` and `/soporte` in Spanish. These are public static pages with no sign-in requirement.
-They share the site's colors,
-responsive typography and language switch. They disclose the hosted service's actual Google identity,
-Cloudflare storage, retained audit history, assistant access, language preference and font requests.
-Account deletion is not advertised as self-service, and no automatic retention purge is claimed.
-The operator contact matches the production Google support contact.
-
-All thirteen public assets are allowlisted by the build and local preview server. The Firebase public
-directory contains no repository configuration, credentials, documentation or ledger data. Google
-OAuth branding can use `https://contamcp.web.app/en` as its homepage and
-`https://contamcp.web.app/privacy` as its privacy-policy URL. Publishing the website does not deploy
-the MCP Worker or change authentication policy.
-
-The hosted-service Terms cover user instructions, recurring bookkeeping, retained audit history,
-exports, best-effort availability and contact. They preserve mandatory consumer rights and do not
-replace the source code's MIT license. The plugin listing's required Terms URL is
-`https://contamcp.web.app/terms`; see [plugin release](../docs/plugin-release.md) for submission.
-
-## Hosted MCP address
-
-The hosted server uses `https://contamcp.devbyfer.com/mcp`. Privacy and support pages must use
-this canonical address. Firebase continues to serve the marketing/policy pages at `contamcp.web.app`;
-it does not proxy MCP traffic. Existing clients must reconnect after the hostname change.
