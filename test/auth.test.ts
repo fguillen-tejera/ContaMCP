@@ -14,10 +14,17 @@ import { googleSubject } from '../src/auth/google';
 import { isChatGptConnection } from '../src/auth/chatgpt';
 import { bindings, connect, dispatch, expenseInput, principal } from './helpers';
 
-const config = () =>
+const config = (emailAccounts = false) =>
   bindings({
     GOOGLE_CLIENT_ID: 'synthetic-google-client',
     GOOGLE_CLIENT_SECRET: 'synthetic-test-only',
+    ...(emailAccounts
+      ? {
+          FIREBASE_PROJECT_ID: 'synthetic-firebase-project',
+          FIREBASE_WEB_API_KEY: 'synthetic-firebase-key',
+          FIREBASE_ALLOWED_UIDS: 'synthetic-firebase-reviewer',
+        }
+      : {}),
   });
 let keyPair: Awaited<ReturnType<typeof generateKeyPair>>;
 let publicKey: Awaited<ReturnType<typeof exportJWK>>;
@@ -152,38 +159,46 @@ async function approveConnection(options: Parameters<typeof startAuthorization>[
 }
 
 describe('OAuth and verified Google identity', () => {
-  it.each([
-    'https://chatgpt.com/connector_platform_oauth_redirect',
-    'https://chatgpt.com/connector/oauth/synthetic_callback-123',
-  ])('sends a new registered ChatGPT connection directly to Google: %s', async (redirectUri) => {
-    const { env, consent, url } = await beginAuthorization({
-      redirectUris: [redirectUri],
-      scope: 'ledger:read',
-    });
-    expect(consent.status).toBe(302);
-    const first = new URL(consent.headers.get('Location') ?? '');
-    expect(first.origin).toBe('https://accounts.google.com');
-    expect(first.searchParams.get('scope')).toBe('openid');
-    expect(first.searchParams.get('code_challenge_method')).toBe('S256');
-    expect(consent.headers.get('Set-Cookie')).toContain('__Host-oauth-upstream-');
-    expect(consent.headers.get('Set-Cookie')).not.toContain('__Host-oauth-consent-');
-    expect(consent.headers.get('Set-Cookie')).not.toContain('__Host-oauth-approvals=');
-    const repeat = await dispatch(new Request(url), env);
-    expect(repeat.status).toBe(302);
-    const second = new URL(repeat.headers.get('Location') ?? '');
-    for (const field of ['state', 'nonce', 'code_challenge']) {
-      expect(first.searchParams.has(field)).toBe(true);
-      expect(first.searchParams.get(field) === second.searchParams.get(field)).toBe(false);
-    }
-    expect(await env.DB.prepare('SELECT COUNT(*) n FROM users').first('n')).toBe(0);
-    const cookie = (consent.headers.get('Set-Cookie') ?? '').split(';')[0] ?? '';
-    const callback = new URL(`${env.APP_ORIGIN}/auth/google/callback`);
-    callback.searchParams.set('state', first.searchParams.get('state') ?? '');
-    const upstream = await getOAuthApi(oauthOptions(env), env).finishUpstream(
-      new Request(callback, { headers: { Cookie: cookie } }),
-    );
-    expect(upstream.request.scope).toEqual(['ledger:read']);
-  });
+  it.each(
+    [false, true].flatMap((emailAccounts) =>
+      [
+        'https://chatgpt.com/connector_platform_oauth_redirect',
+        'https://chatgpt.com/connector/oauth/synthetic_callback-123',
+      ].map((redirectUri) => ({ redirectUri, emailAccounts })),
+    ),
+  )(
+    'sends a new registered ChatGPT connection directly to Google: $redirectUri (email accounts: $emailAccounts)',
+    async ({ redirectUri, emailAccounts }) => {
+      const { env, consent, url } = await beginAuthorization({
+        redirectUris: [redirectUri],
+        scope: 'ledger:read',
+        env: config(emailAccounts),
+      });
+      expect(consent.status).toBe(302);
+      const first = new URL(consent.headers.get('Location') ?? '');
+      expect(first.origin).toBe('https://accounts.google.com');
+      expect(first.searchParams.get('scope')).toBe('openid');
+      expect(first.searchParams.get('code_challenge_method')).toBe('S256');
+      expect(consent.headers.get('Set-Cookie')).toContain('__Host-oauth-upstream-');
+      expect(consent.headers.get('Set-Cookie')).not.toContain('__Host-oauth-consent-');
+      expect(consent.headers.get('Set-Cookie')).not.toContain('__Host-oauth-approvals=');
+      const repeat = await dispatch(new Request(url), env);
+      expect(repeat.status).toBe(302);
+      const second = new URL(repeat.headers.get('Location') ?? '');
+      for (const field of ['state', 'nonce', 'code_challenge']) {
+        expect(first.searchParams.has(field)).toBe(true);
+        expect(first.searchParams.get(field) === second.searchParams.get(field)).toBe(false);
+      }
+      expect(await env.DB.prepare('SELECT COUNT(*) n FROM users').first('n')).toBe(0);
+      const cookie = (consent.headers.get('Set-Cookie') ?? '').split(';')[0] ?? '';
+      const callback = new URL(`${env.APP_ORIGIN}/auth/google/callback`);
+      callback.searchParams.set('state', first.searchParams.get('state') ?? '');
+      const upstream = await getOAuthApi(oauthOptions(env), env).finishUpstream(
+        new Request(callback, { headers: { Cookie: cookie } }),
+      );
+      expect(upstream.request.scope).toEqual(['ledger:read']);
+    },
+  );
 
   it('does not trust an app name, homepage or request headers as proof of ChatGPT', async () => {
     const { env, consent, url } = await beginAuthorization({ clientName: 'ChatGPT' });
@@ -403,32 +418,42 @@ describe('OAuth and verified Google identity', () => {
     expect(response.headers.get('Set-Cookie')).not.toContain('__Host-oauth-approvals=');
   });
 
-  it('remembers an explicit app approval and reconnects directly to Google with a fresh bound login', async () => {
-    const { env, consent, approved, url, approval } = await approveConnection();
-    expect(consent.headers.get('Set-Cookie')).not.toContain('__Host-oauth-approvals=');
-    const stored =
-      (approved.headers.get('Set-Cookie') ?? '')
-        .split(',')
-        .find((part) => part.trim().startsWith('__Host-oauth-approvals=')) ?? '';
-    for (const attribute of ['Secure', 'HttpOnly', 'SameSite=Lax', 'Path=/', 'Max-Age=2592000'])
-      expect(stored).toContain(attribute);
-    const response = await dispatch(new Request(url, { headers: { Cookie: approval } }), env);
-    expect(response.status).toBe(302);
-    const destination = new URL(response.headers.get('Location') ?? '');
-    const initial = new URL(approved.headers.get('Location') ?? '');
-    expect(destination.origin).toBe('https://accounts.google.com');
-    expect(destination.searchParams.get('code_challenge_method')).toBe('S256');
-    expect(destination.searchParams.get('prompt')).toBe('select_account');
-    expect(destination.searchParams.get('state') === initial.searchParams.get('state')).toBe(false);
-    expect(destination.searchParams.get('nonce') === initial.searchParams.get('nonce')).toBe(false);
-    expect(
-      destination.searchParams.get('code_challenge') === initial.searchParams.get('code_challenge'),
-    ).toBe(false);
-    expect(response.headers.get('Set-Cookie')).toContain('__Host-oauth-upstream-');
-    expect(response.headers.get('Set-Cookie')).not.toContain('__Host-oauth-consent-');
-    expect(await env.DB.prepare('SELECT COUNT(*) n FROM users').first('n')).toBe(0);
-    expect((await dispatch(new Request(url), env)).status).toBe(200);
-  });
+  it.each([false, true])(
+    'remembers app approval and starts a fresh Google login (email accounts: %s)',
+    async (emailAccounts) => {
+      const { env, consent, approved, url, approval } = await approveConnection({
+        env: config(emailAccounts),
+      });
+      expect(consent.headers.get('Set-Cookie')).not.toContain('__Host-oauth-approvals=');
+      const stored =
+        (approved.headers.get('Set-Cookie') ?? '')
+          .split(',')
+          .find((part) => part.trim().startsWith('__Host-oauth-approvals=')) ?? '';
+      for (const attribute of ['Secure', 'HttpOnly', 'SameSite=Lax', 'Path=/', 'Max-Age=2592000'])
+        expect(stored).toContain(attribute);
+      const response = await dispatch(new Request(url, { headers: { Cookie: approval } }), env);
+      expect(response.status).toBe(302);
+      const destination = new URL(response.headers.get('Location') ?? '');
+      const initial = new URL(approved.headers.get('Location') ?? '');
+      expect(destination.origin).toBe('https://accounts.google.com');
+      expect(destination.searchParams.get('code_challenge_method')).toBe('S256');
+      expect(destination.searchParams.get('prompt')).toBe('select_account');
+      expect(destination.searchParams.get('state') === initial.searchParams.get('state')).toBe(
+        false,
+      );
+      expect(destination.searchParams.get('nonce') === initial.searchParams.get('nonce')).toBe(
+        false,
+      );
+      expect(
+        destination.searchParams.get('code_challenge') ===
+          initial.searchParams.get('code_challenge'),
+      ).toBe(false);
+      expect(response.headers.get('Set-Cookie')).toContain('__Host-oauth-upstream-');
+      expect(response.headers.get('Set-Cookie')).not.toContain('__Host-oauth-consent-');
+      expect(await env.DB.prepare('SELECT COUNT(*) n FROM users').first('n')).toBe(0);
+      expect((await dispatch(new Request(url), env)).status).toBe(200);
+    },
+  );
 
   it('requires new approval for broader permissions or a different registered return address', async () => {
     const { env, url, approval } = await approveConnection({

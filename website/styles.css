@@ -1466,6 +1466,46 @@ h2 {
   gap: 22px;
   margin-top: 29px;
 }
+.connection-setup {
+  max-width: 640px;
+  margin: 28px auto 0;
+  text-align: left;
+  font-size: 14px;
+}
+.connection-steps {
+  padding-left: 24px;
+  color: var(--muted);
+  line-height: 1.8;
+}
+.connection-steps li + li {
+  margin-top: 8px;
+}
+.connection-setup label {
+  display: block;
+  margin: 20px 0 8px;
+}
+.connection-url {
+  display: flex;
+  gap: 8px;
+}
+.connection-url input {
+  min-width: 0;
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--fg);
+}
+.connection-url button {
+  flex-shrink: 0;
+}
+.connection-status {
+  display: block;
+  min-height: 24px;
+  margin-top: 8px;
+  color: var(--muted);
+}
 .footer-section {
   border-top: 1px solid var(--line);
 }

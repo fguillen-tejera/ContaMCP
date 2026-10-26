@@ -80,6 +80,7 @@ async function begin(
   env = config(),
   redirect = 'https://client.example/callback',
   scope = 'ledger:read ledger:write',
+  preference = '',
 ) {
   const oauth = getOAuthApi(oauthOptions(env), env);
   const client = await oauth.createClient({
@@ -106,12 +107,14 @@ async function begin(
     code_challenge_method: 'S256',
     resource: `${env.APP_ORIGIN}/mcp`,
   }).toString();
-  const response = await dispatch(new Request(url), env);
+  const emailChoice =
+    preference || cookie(await dispatch(new Request(`${env.APP_ORIGIN}/login`), env));
+  const response = await dispatch(new Request(url, { headers: { Cookie: emailChoice } }), env);
   expect(response.status).toBe(200);
   const html = await response.text();
   const handle = html.match(/name="handle" value="([^"]+)"/)?.[1];
   if (!handle) throw new Error('Missing consent handle.');
-  return { env, client, redirect, verifier, response, html, handle };
+  return { env, client, redirect, verifier, response, html, handle, url };
 }
 
 function cookie(response: Response) {
@@ -225,17 +228,57 @@ function configWith(overrides: Partial<AppEnv>) {
 
 describe('Firebase OAuth and owner isolation', () => {
   it('offers a public connection landing page without accepting passwords outside an OAuth request', async () => {
-    const response = await dispatch(new Request('http://localhost:8787/login'), config());
+    const env = config();
+    const response = await dispatch(new Request('http://localhost:8787/login'), env);
     expect(response.status).toBe(200);
     const html = await response.text();
     expect(html).toContain('http://localhost:8787/mcp');
     expect(html).not.toContain('type="password"');
     expect(response.headers.get('Content-Security-Policy')).toContain("default-src 'none'");
     expect(response.headers.get('Cache-Control')).toBe('no-store');
+    const preference = response.headers.get('Set-Cookie') ?? '';
+    for (const attribute of [
+      '__Host-conta-email=email',
+      'Secure',
+      'HttpOnly',
+      'SameSite=Lax',
+      'Path=/',
+      'Max-Age=600',
+    ])
+      expect(preference).toContain(attribute);
+    expect(html).toContain('10 minutos');
+    expect(
+      (
+        await dispatch(
+          new Request(`${env.APP_ORIGIN}/mcp`, { headers: { Cookie: cookie(response) } }),
+          env,
+        )
+      ).status,
+    ).toBe(401);
   });
 
-  it('shows both authentication choices for ChatGPT when email accounts are enabled', async () => {
+  it('does not let the email preference bypass PKCE validation', async () => {
     const started = await begin(config(), 'https://chatgpt.com/connector_platform_oauth_redirect');
+    const invalid = new URL(started.url);
+    invalid.searchParams.set('code_challenge', 'invalid');
+    const response = await dispatch(
+      new Request(invalid, { headers: { Cookie: '__Host-conta-email=email' } }),
+      started.env,
+    );
+    expect(response.status).toBe(400);
+    expect(response.headers.get('Set-Cookie')).toBeNull();
+    expect(await started.env.DB.prepare('SELECT COUNT(*) n FROM users').first('n')).toBe(0);
+  });
+
+  it('offers email for one client-bound connection after visiting the login page', async () => {
+    const env = config();
+    const landing = await dispatch(new Request(`${env.APP_ORIGIN}/login`), env);
+    const started = await begin(
+      env,
+      'https://chatgpt.com/connector_platform_oauth_redirect',
+      'ledger:read ledger:write',
+      cookie(landing),
+    );
     expect(started.html).toContain('name="provider" value="firebase"');
     expect(started.html).toContain('type="password"');
     expect(started.html).toContain('Google');
@@ -246,6 +289,15 @@ describe('Firebase OAuth and owner isolation', () => {
     expect(started.response.headers.get('Content-Security-Policy')).toContain(
       "form-action 'self' https://accounts.google.com https://chatgpt.com https://platform.openai.com;",
     );
+    expect(
+      started.response.headers
+        .getSetCookie()
+        .some((value) => value.startsWith('__Host-conta-email=') && value.includes('Max-Age=0')),
+    ).toBe(true);
+    const next = await dispatch(new Request(started.url), env);
+    expect(next.status).toBe(302);
+    expect(new URL(next.headers.get('Location') ?? '').origin).toBe('https://accounts.google.com');
+    expect(await env.DB.prepare('SELECT COUNT(*) n FROM users').first('n')).toBe(0);
   });
 
   it.each([

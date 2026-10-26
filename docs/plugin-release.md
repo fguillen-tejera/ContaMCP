@@ -58,8 +58,11 @@ migration, and allow only that account's Firebase UID. Do not reuse a personal G
 share a maintainer's Google/ChatGPT account, production data, OAuth secret or Firebase admin access.
 The demo account owns a separate ledger; matching email addresses do not link it to Google records.
 
-Set the reviewer Login URL to `https://contamcp.devbyfer.com/login`. Reviewers start Connect in their
-assistant, choose email on ContaMCP's authorization page and use the service demo credentials.
+Set the reviewer Login URL to `https://contamcp.devbyfer.com/login`. Reviewers must visit it first
+in the same browser, then start Connect in their assistant within ten minutes. This selects the
+email form for that connection while regular ChatGPT users go directly to Google. Reviewers choose
+email on ContaMCP's authorization page and use the service demo credentials. For another connection,
+visit the Login URL again; the preference supplies no identity or access itself.
 They must not need operator approval, inaccessible MFA or new account setup. Test that complete
 flow in a fresh browser before submitting. The portal also offers a reviewer-email method for apps
 that implement email links/codes; ContaMCP's implemented email method is password authentication,
@@ -72,8 +75,11 @@ manifest, issues, PR descriptions, recordings or public chat.
 The directory display name is **Conta: Personal Finance**, with the subtitle
 **Income, expenses & budgets**, in **Finance**. The Spanish subtitle is
 **Ingresos, gastos y presupuesto**. The repository, package identifier and hosted service remain
-ContaMCP. The display name follows the portal's requirement to omit “MCP”; this listing-only rename
-does not change the server address, authentication, permissions, reviewer account or recorded workflows.
+ContaMCP. The display name follows the portal's requirement to omit “MCP”. This candidate also restores
+direct Google sign-in by default and makes email sign-in an explicit choice through the reviewer
+Login URL. The server address, permissions, reviewer account and financial workflows are unchanged.
+The existing recording starts after sign-in and can be reused; validate both revised login paths
+and update the private reviewer instructions before resubmitting.
 
 The package supplies exactly five positive cases and three negative cases. Run positives in order in the
 dedicated account: create, correct, cash flow, future recurring schedule, export. They use

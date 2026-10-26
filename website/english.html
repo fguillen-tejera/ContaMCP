@@ -704,12 +704,47 @@
       <section class="final-cta" id="get-started" data-reveal aria-labelledby="final-cta-title">
         <div class="container">
           <h2 id="final-cta-title">Track your finances<br>from your chat.</h2>
-          <p>Install ContaMCP, connect your assistant, and record your first transaction.</p>
+          <p>Connect Conta: Personal Finance with Google and record your first transaction.</p>
+          <p>The public plugin listing is under review. You can connect the hosted service now.</p>
+          <div class="connection-setup">
+            <ol class="connection-steps">
+              <li>Open ChatGPT Plugins and choose <strong>Add custom MCP server</strong>.</li>
+              <li>
+                Name it <strong>Conta</strong>, paste this server URL, and select
+                <strong>OAuth</strong>. Review the connection prompt and create the plugin.
+              </li>
+              <li>
+                Open the new plugin, install it, and connect with Google. Back in ChatGPT, select
+                <strong>@Conta</strong>
+                to start chatting.
+              </li>
+            </ol>
+            <label for="connection-url">Server URL</label>
+            <div class="connection-url">
+              <input
+                id="connection-url"
+                type="url"
+                value="https://contamcp.devbyfer.com/mcp"
+                readonly
+              >
+              <button id="copy-connection-url" class="button button-secondary" type="button">
+                Copy URL
+              </button>
+            </div>
+            <span
+              id="copy-connection-status"
+              class="connection-status"
+              role="status"
+              aria-live="polite"
+            ></span>
+          </div>
           <div class="final-cta-actions">
             <a
               class="button button-primary"
-              href="https://github.com/fguillen-tejera/ContaMCP#deploy-your-own-instance"
-              >Get started<svg aria-hidden="true" class="icon"><use href="#arrow" /></svg></a
+              href="https://chatgpt.com/plugins"
+              target="_blank"
+              rel="noopener noreferrer"
+              >Open ChatGPT<svg aria-hidden="true" class="icon"><use href="#arrow" /></svg></a
             ><a
               class="source-link"
               href="https://github.com/fguillen-tejera/ContaMCP/blob/main/docs/authentication.md"

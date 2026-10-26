@@ -94,7 +94,7 @@
         }
       },
       "publication": {
-        "release_notes": "Rename the listing to Conta: Personal Finance with the subtitle Income, expenses & budgets. Update the Spanish subtitle to match. This is a listing-only change; the production service, authentication, permissions, reviewer account, test cases and recorded walkthrough are unchanged.",
+        "release_notes": "Rename the listing to Conta: Personal Finance with the subtitle Income, expenses & budgets and a matching Spanish subtitle. Restore direct Google sign-in for normal ChatGPT connections; provisioned email users first visit the reviewer Login URL in the same browser. Update the website connection guide. Financial tools, permissions, reviewer credentials, test cases and the recorded walkthrough are unchanged.",
         "translations": {
           "es-MX": {
             "subtitle": "Ingresos, gastos y presupuesto",
