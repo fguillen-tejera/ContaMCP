@@ -165,6 +165,14 @@ not persisted by the Worker or passed to MCP clients. Failures use one generic m
 credentials and issue a fresh consent transaction; retry pages retain the form-compatible referrer
 policy. The existing aggregate OAuth rate limit bounds these requests as well.
 
+The authorization page's `form-action` policy includes its own origin, Google, and the validated
+OAuth callback origin because browsers also apply it to redirects after a form submission.
+Registrations whose return URIs all match the documented ChatGPT callback policy additionally
+allow `https://platform.openai.com` for OpenAI's publisher-console relay. Callback query strings,
+client names and arbitrary registered alternative origins never become policy directives.
+This applies to retry and cancellation pages too; PKCE, browser binding and exact registered
+redirect checks still control delivery of authorization codes.
+
 Migration `0008_spooky_flatman.sql` adds `users.auth_provider` with default `google`. Existing user
 UUIDs, Google subject values, financial records and issued Google grants are retained. The legacy
 `google_subject` column stores the external subject for either provider; all new identity resolution

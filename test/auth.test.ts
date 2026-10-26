@@ -114,7 +114,7 @@ async function startAuthorization(options: Parameters<typeof beginAuthorization>
   expect(consent.headers.get('Referrer-Policy')).toBe('strict-origin');
   expect(consent.headers.get('Content-Security-Policy')).toContain("frame-ancestors 'none'");
   expect(consent.headers.get('Content-Security-Policy')).toContain(
-    "form-action 'self' https://accounts.google.com;",
+    `form-action 'self' https://accounts.google.com ${new URL(client.redirectUris[0] ?? '').origin};`,
   );
   expect(html).not.toContain('<script>');
   expect(html).toContain('client.example');
@@ -208,6 +208,12 @@ describe('OAuth and verified Google identity', () => {
       redirectUris: [stable, 'https://client.example/callback'],
     });
     expect(mixed.consent.status).toBe(200);
+    expect(mixed.consent.headers.get('Content-Security-Policy')).toContain(
+      "form-action 'self' https://accounts.google.com https://chatgpt.com;",
+    );
+    expect(mixed.consent.headers.get('Content-Security-Policy')).not.toContain(
+      'https://platform.openai.com',
+    );
     const foreign = new URL(mixed.url);
     foreign.searchParams.set('redirect_uri', 'https://client.example/callback');
     expect((await dispatch(new Request(foreign), mixed.env)).status).toBe(200);

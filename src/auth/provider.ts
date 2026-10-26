@@ -124,6 +124,10 @@ async function authorizationPage(
   priorHeaders?: Headers,
 ) {
   const details = await oauth.describeConsent(request);
+  const callbackOrigin = new URL(request.redirectUri).origin;
+  const platformReturn = (await isChatGptConnection(oauth, request))
+    ? ' https://platform.openai.com'
+    : '';
   const styleNonce = crypto.randomUUID();
   const consent = await oauth.beginConsent(request);
   for (const cookie of priorHeaders?.getSetCookie() ?? [])
@@ -131,7 +135,8 @@ async function authorizationPage(
   consent.headers.set('Content-Type', 'text/html; charset=utf-8');
   consent.headers.set(
     'Content-Security-Policy',
-    `default-src 'none'; style-src 'nonce-${styleNonce}'; form-action 'self' https://accounts.google.com; frame-ancestors 'none'; base-uri 'none'`,
+    // Browsers apply form-action to redirects, including ChatGPT's publisher-console relay.
+    `default-src 'none'; style-src 'nonce-${styleNonce}'; form-action 'self' https://accounts.google.com ${callbackOrigin}${platformReturn}; frame-ancestors 'none'; base-uri 'none'`,
   );
   return new Response(
     consentPage(details, consent.handle, styleNonce, english, emailSignIn, signInFailed),
