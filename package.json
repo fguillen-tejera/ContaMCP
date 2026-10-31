@@ -58,7 +58,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.6.2",
-    "@cloudflare/vitest-plugin": "1.4.7",
+    "@cloudflare/vitest-plugin": "1.4.9",
     "@modelcontextprotocol/client": "2.3.1",
     "@types/node": "24.19.2",
     "drizzle-kit": "0.31.11",
