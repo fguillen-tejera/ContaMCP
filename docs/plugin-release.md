@@ -20,7 +20,7 @@ pnpm install --frozen-lockfile
 pnpm check
 pnpm build:website
 pnpm package:plugin
-unzip -l dist/plugins/contamcp-0.1.4.zip
+unzip -l dist/plugins/contamcp-0.1.5.zip
 ```
 
 The build archives only three explicit files from `plugins/contamcp/`, rejects symlinks in those
@@ -29,7 +29,7 @@ The ZIP has `plugin.json` and `mcp.json` at its root. Build outputs remain ignor
 Do not add `.dev.vars*`, `.wrangler/`, local Wrangler configuration, reviewer credentials, account
 identifiers, tokens, callback URLs, production exports or private recordings to the public package.
 
-The package is version `0.1.4`; this is a submission candidate, not an approval claim. Change the version
+The package is version `0.1.5`; this is a submission candidate, not an approval claim. Change the version
 when uploading a revised package. Update the listing fields in source rather than relying on edits
 in the portal. Keep the public display name aligned with the product; resolve any naming finding
 with the reviewer rather than advertising OpenAI endorsement.
@@ -58,11 +58,11 @@ migration, and allow only that account's Firebase UID. Do not reuse a personal G
 share a maintainer's Google/ChatGPT account, production data, OAuth secret or Firebase admin access.
 The demo account owns a separate ledger; matching email addresses do not link it to Google records.
 
-Set the reviewer Login URL to `https://contamcp.devbyfer.com/login`. Reviewers must visit it first
-in the same browser, then start Connect in their assistant within ten minutes. This selects the
-email form for that connection while regular ChatGPT users go directly to Google. Reviewers choose
-email on ContaMCP's authorization page and use the service demo credentials. For another connection,
-visit the Login URL again; the preference supplies no identity or access itself.
+Set the reviewer Login URL to `https://contamcp.devbyfer.com/login`, an informational landing page.
+Reviewers start Connect in their assistant, then use the dedicated service credentials in the
+email/password form on ContaMCP's authorization page. The form is available immediately on fresh
+and repeat connections; no prior page visit or timed browser preference is required. Google sign-in
+is also available on that same page. The email account is separate from the reviewer's Google account.
 They must not need operator approval, inaccessible MFA or new account setup. Test that complete
 flow in a fresh browser before submitting. The portal also offers a reviewer-email method for apps
 that implement email links/codes; ContaMCP's implemented email method is password authentication,
@@ -75,9 +75,9 @@ manifest, issues, PR descriptions, recordings or public chat.
 The directory display name is **Conta: Personal Finance**, with the subtitle
 **Income, expenses & budgets**, in **Finance**. The Spanish subtitle is
 **Ingresos, gastos y presupuesto**. The repository, package identifier and hosted service remain
-ContaMCP. The display name follows the portal's requirement to omit “MCP”. This candidate also restores
-direct Google sign-in by default and makes email sign-in an explicit choice through the reviewer
-Login URL. The server address, permissions, reviewer account and financial workflows are unchanged.
+ContaMCP. The display name follows the portal's requirement to omit “MCP”. This candidate makes
+both sign-in methods available directly in the OAuth flow, removing the fragile reviewer pre-visit.
+The server address, permissions, reviewer account and financial workflows are unchanged.
 The existing recording starts after sign-in and can be reused; validate both revised login paths
 and update the private reviewer instructions before resubmitting.
 

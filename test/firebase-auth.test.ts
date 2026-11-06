@@ -80,7 +80,6 @@ async function begin(
   env = config(),
   redirect = 'https://client.example/callback',
   scope = 'ledger:read ledger:write',
-  preference = '',
 ) {
   const oauth = getOAuthApi(oauthOptions(env), env);
   const client = await oauth.createClient({
@@ -107,9 +106,7 @@ async function begin(
     code_challenge_method: 'S256',
     resource: `${env.APP_ORIGIN}/mcp`,
   }).toString();
-  const emailChoice =
-    preference || cookie(await dispatch(new Request(`${env.APP_ORIGIN}/login`), env));
-  const response = await dispatch(new Request(url, { headers: { Cookie: emailChoice } }), env);
+  const response = await dispatch(new Request(url), env);
   expect(response.status).toBe(200);
   const html = await response.text();
   const handle = html.match(/name="handle" value="([^"]+)"/)?.[1];
@@ -147,7 +144,8 @@ async function signIn(
 async function exchange(started: Awaited<ReturnType<typeof begin>>, response: Response) {
   expect(response.status).toBe(302);
   const returned = new URL(response.headers.get('Location') ?? '');
-  expect(returned.origin).toBe('https://client.example');
+  expect(returned.origin).toBe(new URL(started.redirect).origin);
+  expect(returned.pathname).toBe(new URL(started.redirect).pathname);
   expect(returned.searchParams.get('state')).toBe('synthetic-state');
   const tokenResponse = await dispatch(
     new Request(`${started.env.APP_ORIGIN}/oauth/token`, {
@@ -236,17 +234,9 @@ describe('Firebase OAuth and owner isolation', () => {
     expect(html).not.toContain('type="password"');
     expect(response.headers.get('Content-Security-Policy')).toContain("default-src 'none'");
     expect(response.headers.get('Cache-Control')).toBe('no-store');
-    const preference = response.headers.get('Set-Cookie') ?? '';
-    for (const attribute of [
-      '__Host-conta-email=email',
-      'Secure',
-      'HttpOnly',
-      'SameSite=Lax',
-      'Path=/',
-      'Max-Age=600',
-    ])
-      expect(preference).toContain(attribute);
-    expect(html).toContain('10 minutos');
+    expect(response.headers.get('Set-Cookie')).toBeNull();
+    expect(html).not.toContain('10 minutos');
+    expect(html).toContain('Al conectar, elige Google');
     expect(
       (
         await dispatch(
@@ -257,7 +247,7 @@ describe('Firebase OAuth and owner isolation', () => {
     ).toBe(401);
   });
 
-  it('does not let the email preference bypass PKCE validation', async () => {
+  it('requires PKCE before offering either sign-in method', async () => {
     const started = await begin(config(), 'https://chatgpt.com/connector_platform_oauth_redirect');
     const invalid = new URL(started.url);
     invalid.searchParams.set('code_challenge', 'invalid');
@@ -270,15 +260,9 @@ describe('Firebase OAuth and owner isolation', () => {
     expect(await started.env.DB.prepare('SELECT COUNT(*) n FROM users').first('n')).toBe(0);
   });
 
-  it('offers email for one client-bound connection after visiting the login page', async () => {
+  it('offers email on fresh and repeated ChatGPT connections without a login pre-visit', async () => {
     const env = config();
-    const landing = await dispatch(new Request(`${env.APP_ORIGIN}/login`), env);
-    const started = await begin(
-      env,
-      'https://chatgpt.com/connector_platform_oauth_redirect',
-      'ledger:read ledger:write',
-      cookie(landing),
-    );
+    const started = await begin(env, 'https://chatgpt.com/connector_platform_oauth_redirect');
     expect(started.html).toContain('name="provider" value="firebase"');
     expect(started.html).toContain('type="password"');
     expect(started.html).toContain('Google');
@@ -289,14 +273,14 @@ describe('Firebase OAuth and owner isolation', () => {
     expect(started.response.headers.get('Content-Security-Policy')).toContain(
       "form-action 'self' https://accounts.google.com https://chatgpt.com https://platform.openai.com;",
     );
-    expect(
-      started.response.headers
-        .getSetCookie()
-        .some((value) => value.startsWith('__Host-conta-email=') && value.includes('Max-Age=0')),
-    ).toBe(true);
+    expect(started.response.headers.get('Set-Cookie')).not.toContain('__Host-conta-email=');
     const next = await dispatch(new Request(started.url), env);
-    expect(next.status).toBe(302);
-    expect(new URL(next.headers.get('Location') ?? '').origin).toBe('https://accounts.google.com');
+    expect(next.status).toBe(200);
+    expect(next.headers.get('Location')).toBeNull();
+    const html = await next.text();
+    expect(html).toContain('type="password"');
+    expect(html).toContain('Google');
+    expect(html.match(/name="handle" value="([^"]+)"/)?.[1]).not.toBe(started.handle);
     expect(await env.DB.prepare('SELECT COUNT(*) n FROM users').first('n')).toBe(0);
   });
 
@@ -319,47 +303,54 @@ describe('Firebase OAuth and owner isolation', () => {
     },
   );
 
-  it('completes PKCE OAuth into a separate ledger and honors immediate UID removal', async () => {
-    mockFirebase(await idToken());
-    const started = await begin();
-    const google = await principal(started.env);
-    const tokens = await exchange(started, await signIn(started));
-    const firebase = await connect(started.env, tokens.access_token);
-    const originalGoogle = await connect(started.env, google.token);
-    try {
-      const created = await firebase.callTool({
-        name: 'create_entry',
-        arguments: { ...expenseInput(), type: 'expense' },
-      });
-      expect(created.isError).not.toBe(true);
-      const own = await firebase.callTool({ name: 'list_entries', arguments: {} });
-      expect(
-        z.object({ entries: z.array(z.unknown()) }).parse(own.structuredContent).entries,
-      ).toHaveLength(1);
-      const other = await originalGoogle.callTool({ name: 'list_entries', arguments: {} });
-      expect(
-        z.object({ entries: z.array(z.unknown()) }).parse(other.structuredContent).entries,
-      ).toHaveLength(0);
-      expect(
-        await started.env.DB.prepare('SELECT COUNT(*) AS count FROM users').first('count'),
-      ).toBe(2);
-      started.env.FIREBASE_ALLOWED_UIDS = 'another-allowed-uid';
-      expect(
-        (
-          await dispatch(
-            new Request(`${started.env.APP_ORIGIN}/mcp`, {
-              headers: { Authorization: `Bearer ${tokens.access_token}` },
-            }),
-            started.env,
-          )
-        ).status,
-      ).toBe(403);
-      expect((await originalGoogle.listTools()).tools.length).toBeGreaterThan(0);
-    } finally {
-      await firebase.close();
-      await originalGoogle.close();
-    }
-  });
+  it.each([
+    'https://client.example/callback',
+    'https://chatgpt.com/connector_platform_oauth_redirect',
+    'https://chatgpt.com/connector/oauth/synthetic_callback-123',
+  ])(
+    'completes fresh PKCE OAuth into a separate ledger and honors UID removal: %s',
+    async (redirect) => {
+      mockFirebase(await idToken());
+      const started = await begin(config(), redirect);
+      const google = await principal(started.env);
+      const tokens = await exchange(started, await signIn(started));
+      const firebase = await connect(started.env, tokens.access_token);
+      const originalGoogle = await connect(started.env, google.token);
+      try {
+        const created = await firebase.callTool({
+          name: 'create_entry',
+          arguments: { ...expenseInput(), type: 'expense' },
+        });
+        expect(created.isError).not.toBe(true);
+        const own = await firebase.callTool({ name: 'list_entries', arguments: {} });
+        expect(
+          z.object({ entries: z.array(z.unknown()) }).parse(own.structuredContent).entries,
+        ).toHaveLength(1);
+        const other = await originalGoogle.callTool({ name: 'list_entries', arguments: {} });
+        expect(
+          z.object({ entries: z.array(z.unknown()) }).parse(other.structuredContent).entries,
+        ).toHaveLength(0);
+        expect(
+          await started.env.DB.prepare('SELECT COUNT(*) AS count FROM users').first('count'),
+        ).toBe(2);
+        started.env.FIREBASE_ALLOWED_UIDS = 'another-allowed-uid';
+        expect(
+          (
+            await dispatch(
+              new Request(`${started.env.APP_ORIGIN}/mcp`, {
+                headers: { Authorization: `Bearer ${tokens.access_token}` },
+              }),
+              started.env,
+            )
+          ).status,
+        ).toBe(403);
+        expect((await originalGoogle.listTools()).tools.length).toBeGreaterThan(0);
+      } finally {
+        await firebase.close();
+        await originalGoogle.close();
+      }
+    },
+  );
 
   it('does not link providers on a colliding legacy subject and excludes Firebase from a Google job allowlist', async () => {
     const env = config();
@@ -468,5 +459,10 @@ describe('Firebase OAuth and owner isolation', () => {
     expect((await signIn(started)).status).toBe(400);
     expect(JSON.stringify(logs.mock.calls)).not.toContain(credentials.password);
     expect(JSON.stringify(logs.mock.calls)).not.toContain(credentials.email);
+    const retryHandle = html.match(/name="handle" value="([^"]+)"/)?.[1];
+    if (!retryHandle) throw new Error('Missing retry consent handle.');
+    vi.restoreAllMocks();
+    mockFirebase(await idToken());
+    await exchange(started, await signIn({ ...started, handle: retryHandle, response: failed }));
   });
 });

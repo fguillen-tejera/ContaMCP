@@ -156,8 +156,11 @@ client/callback binding, scope narrowing and fresh login state; hosted browser c
 
 Test both the installed ContaMCP plugin and a manually added ContaMCP MCP URL in ChatGPT, using
 DCR and the exact callback shown in ChatGPT's management page. When every registered callback is a
-supported ChatGPT destination, a first connection in a fresh browser should go immediately to Google
-without a ContaMCP approval page. Complete account selection and verify a persisted synthetic entry
+supported ChatGPT destination, a first connection in a fresh browser on a Google-only deployment
+should go immediately to Google without a ContaMCP approval page. With optional email accounts enabled,
+verify that both Google and email/password are offered immediately, without visiting `/login` first.
+Repeat the connection and retry a failed password to confirm both methods remain reachable.
+Complete account selection and verify a persisted synthetic entry
 from the intended account; changing the Google account must still select that account's own ledger.
 No token should be issued when Google authentication or the subject allowlist rejects the account.
 

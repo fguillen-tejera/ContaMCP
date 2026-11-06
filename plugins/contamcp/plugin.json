@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "contamcp",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Keep a private income and expense ledger through your assistant, with exact currency totals, audited corrections, recurring bookkeeping and exports.",
   "author": {
     "name": "Fernando Guillen",
@@ -94,7 +94,7 @@
         }
       },
       "publication": {
-        "release_notes": "Rename the listing to Conta: Personal Finance with the subtitle Income, expenses & budgets and a matching Spanish subtitle. Restore direct Google sign-in for normal ChatGPT connections; provisioned email users first visit the reviewer Login URL in the same browser. Update the website connection guide. Financial tools, permissions, reviewer credentials, test cases and the recorded walkthrough are unchanged.",
+        "release_notes": "Make Google and provisioned ContaMCP email/password sign-in available directly on every OAuth connection. Remove the ten-minute, one-use login-page preference so reviewers can sign in from a fresh browser or retry a connection without extra setup. Financial tools, permissions, reviewer account, test cases and recorded walkthrough are unchanged.",
         "translations": {
           "es-MX": {
             "subtitle": "Ingresos, gastos y presupuesto",

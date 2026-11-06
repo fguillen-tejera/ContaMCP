@@ -22,9 +22,8 @@ remain open gates.
 - Explicit monthly category budgets and remembered user-approved currency defaults.
 - Readable activity history, audited restoration, bounded JSON/CSV exports and complete financial backups.
 - Google sign-in, plus optional operator-provisioned Firebase email/password accounts with separate
-  ledgers. ChatGPT goes directly to Google by default, including when email accounts are enabled.
-  Provisioned email users first open `/login` in the same browser. Other MCP apps remember Google
-  approval for 30 days.
+  ledgers. When enabled, every OAuth connection offers both Google and email sign-in directly.
+  Google-only deployments retain direct ChatGPT sign-in and 30-day approval for other MCP apps.
 - Six legacy expense tools remain expense-only. New financial tools require fresh `ledger:read` /
   `ledger:write` consent; existing expense-only grants gain no additional access.
 
