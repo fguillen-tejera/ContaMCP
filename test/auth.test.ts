@@ -167,13 +167,22 @@ describe('OAuth and verified Google identity', () => {
       ].map((redirectUri) => ({ redirectUri, emailAccounts })),
     ),
   )(
-    'sends a new registered ChatGPT connection directly to Google: $redirectUri (email accounts: $emailAccounts)',
+    'keeps configured sign-in methods reachable for ChatGPT: $redirectUri (email accounts: $emailAccounts)',
     async ({ redirectUri, emailAccounts }) => {
       const { env, consent, url } = await beginAuthorization({
         redirectUris: [redirectUri],
         scope: 'ledger:read',
         env: config(emailAccounts),
       });
+      if (emailAccounts) {
+        expect(consent.status).toBe(200);
+        expect(consent.headers.get('Location')).toBeNull();
+        const html = await consent.text();
+        expect(html).toContain('type="password"');
+        expect(html).toContain('Conectar con Google');
+        expect((await dispatch(new Request(url), env)).status).toBe(200);
+        return;
+      }
       expect(consent.status).toBe(302);
       const first = new URL(consent.headers.get('Location') ?? '');
       expect(first.origin).toBe('https://accounts.google.com');
@@ -431,7 +440,28 @@ describe('OAuth and verified Google identity', () => {
           .find((part) => part.trim().startsWith('__Host-oauth-approvals=')) ?? '';
       for (const attribute of ['Secure', 'HttpOnly', 'SameSite=Lax', 'Path=/', 'Max-Age=2592000'])
         expect(stored).toContain(attribute);
-      const response = await dispatch(new Request(url, { headers: { Cookie: approval } }), env);
+      let response = await dispatch(new Request(url, { headers: { Cookie: approval } }), env);
+      if (emailAccounts) {
+        expect(response.status).toBe(200);
+        const html = await response.text();
+        expect(html).toContain('type="password"');
+        const handle = html.match(/name="handle" value="([^"]+)"/)?.[1];
+        expect(handle).toBeDefined();
+        response = await dispatch(
+          new Request(`${env.APP_ORIGIN}/authorize`, {
+            method: 'POST',
+            headers: {
+              Origin: env.APP_ORIGIN,
+              Cookie: response.headers
+                .getSetCookie()
+                .map((value) => value.split(';')[0])
+                .join('; '),
+            },
+            body: new URLSearchParams({ handle: handle ?? '', decision: 'approve' }),
+          }),
+          env,
+        );
+      }
       expect(response.status).toBe(302);
       const destination = new URL(response.headers.get('Location') ?? '');
       const initial = new URL(approved.headers.get('Location') ?? '');
@@ -449,7 +479,17 @@ describe('OAuth and verified Google identity', () => {
           initial.searchParams.get('code_challenge'),
       ).toBe(false);
       expect(response.headers.get('Set-Cookie')).toContain('__Host-oauth-upstream-');
-      expect(response.headers.get('Set-Cookie')).not.toContain('__Host-oauth-consent-');
+      if (emailAccounts) {
+        expect(
+          response.headers
+            .getSetCookie()
+            .some(
+              (value) => value.startsWith('__Host-oauth-consent-') && value.includes('Max-Age=0'),
+            ),
+        ).toBe(true);
+      } else {
+        expect(response.headers.get('Set-Cookie')).not.toContain('__Host-oauth-consent-');
+      }
       expect(await env.DB.prepare('SELECT COUNT(*) n FROM users').first('n')).toBe(0);
       expect((await dispatch(new Request(url), env)).status).toBe(200);
     },

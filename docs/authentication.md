@@ -66,10 +66,12 @@ error hook. DCR remains a standard supported path, including the current OpenAI 
 
 ### ChatGPT: plugin or manually added MCP server
 
-Both ChatGPT connection methods default to **Connect in ChatGPT → Google sign-in →
-back to ChatGPT**, including when optional email accounts are configured. ChatGPT's own connection
-confirmation and Google's account/consent screens still apply. Provisioned email users explicitly
-select the email flow through `/login` first, as described below. ContaMCP preapproves delivery of authorization codes to ChatGPT's documented
+When optional email accounts are configured, both ChatGPT connection methods show the ContaMCP
+authorization page with Google and email/password sign-in. No prior visit to `/login`, preference
+cookie, or separate account setup is required for a provisioned account. Google-only deployments
+retain **Connect in ChatGPT → Google sign-in → back to ChatGPT**. ChatGPT's own connection
+confirmation and Google's account/consent screens still apply. For the Google-only shortcut,
+ContaMCP preapproves delivery of authorization codes to ChatGPT's documented
 callback addresses, after validating the OAuth request and checking its stored client registration:
 - `https://chatgpt.com/connector_platform_oauth_redirect`
 - `https://chatgpt.com/connector/oauth/{callback_id}`, where the opaque ID contains ASCII letters,
@@ -113,6 +115,9 @@ request was approved earlier.
 Clients must retain their registered client ID across reconnects; creating a new registration is a new
 app identity. Clearing site cookies forgets remembered approvals.
 
+When email accounts are configured, remembered Google approval does not skip the sign-in page:
+both methods remain available on every new authorization request.
+
 The OAuth provider stores approvals in its bounded `__Host-oauth-approvals` cookie (Secure, HttpOnly,
 SameSite=Lax). It contains no Google identity or financial records. Because identity is learned only
 after Google sign-in, approvals belong to the browser, not a particular Google account; Google identity
@@ -151,18 +156,16 @@ by ContaMCP. The application checks the allowed UID after verifying Firebase's s
 creating another Firebase account does not grant it ledger access. Keep the deployment on its
 approved plan; do not enable paid Identity Platform features or upgrade billing for this flow.
 
-Provisioned email users first visit `/login` in the same browser, then start Connect in their
-assistant. This page sets a Secure, HttpOnly, SameSite=Lax, host-only `__Host-conta-email` preference
-for up to ten minutes. The next validated authorization request consumes it and shows the existing
-Google/email form instead of the direct Google path. Return to `/login` before each new email
-connection. Normal ChatGPT connections continue directly to Google; other clients retain remembered
-Google approval. The preference is deliberately untrusted: it selects UI, carries no identity or
-permissions, and cannot authorize a request. PKCE/client validation happens before it is consumed.
+Every validated OAuth authorization request offers Google and email/password sign-in when email
+accounts are enabled. Fresh browsers, repeat connections and remembered Google approvals all keep
+both methods available. There is no sign-in-method preference cookie or time-limited pre-visit.
+`/login` is an informational landing page that explains how to start Connect in the assistant;
+it does not authenticate an account or set cookies.
 
 Google users should keep choosing Google to retain their ledger. The email form is explicitly for a
 ContaMCP password, not a Google password. `/login` accepts no credentials; the password form remains
 bound to a validated client authorization request. Failed-password retries keep their own fresh
-browser-bound consent transaction and do not require revisiting `/login`.
+browser-bound consent transaction.
 
 The browser submits email and password only over HTTPS to `/authorize`, using the OAuth provider's
 single-use, browser-bound consent handle. The Worker sends them to Firebase's fixed

@@ -12,7 +12,6 @@ import {
   insufficientScope,
 } from '@cloudflare/workers-oauth-provider';
 import { Hono } from 'hono';
-import { generateCookie, getCookie, setCookie } from 'hono/cookie';
 import { z } from 'zod';
 import { ledgerStore } from '../db/ledger';
 import { identityOwner } from '../db/identity';
@@ -56,8 +55,6 @@ const contextSchema = z.object({
   }),
 });
 const scopes = ['expenses:read', 'expenses:write', 'ledger:read', 'ledger:write'];
-const emailChoiceCookie = '__Host-conta-email';
-const emailChoiceOptions = { path: '/', secure: true, httpOnly: true, sameSite: 'Lax' } as const;
 const consentSubmissionSchema = z.union([
   z.strictObject({
     handle: z.string().min(1).max(128),
@@ -152,7 +149,6 @@ authRoutes.get('/health', (c) => c.json({ status: 'ok', service: 'contamcp' }));
 authRoutes.get('/login', (c) => {
   const nonce = crypto.randomUUID();
   const emailSignIn = firebaseConfig(c.env) !== undefined;
-  if (emailSignIn) setCookie(c, emailChoiceCookie, 'email', { ...emailChoiceOptions, maxAge: 600 });
   c.header(
     'Content-Security-Policy',
     `default-src 'none'; style-src 'nonce-${nonce}'; frame-ancestors 'none'; base-uri 'none'`,
@@ -189,25 +185,18 @@ authRoutes.get('/authorize', async (c) => {
       description: 'Request read access or matching read and write access.',
     });
   const emailSignIn = firebaseConfig(c.env) !== undefined;
-  // This untrusted preference selects a form; it never supplies identity or authorization.
-  const preferEmail = emailSignIn && getCookie(c, emailChoiceCookie) === 'email';
-  if (!preferEmail && (await isChatGptConnection(oauth, request)))
-    return startGoogleSignIn(oauth, request, config);
-  const remember = await rememberedConsent(config.clientSecret, c.env.APP_ORIGIN);
-  if (!preferEmail && (await oauth.isConsentRemembered(c.req.raw, request, remember)))
-    return startGoogleSignIn(oauth, request, config);
-  const headers = preferEmail
-    ? new Headers({
-        'Set-Cookie': generateCookie(emailChoiceCookie, '', { ...emailChoiceOptions, maxAge: 0 }),
-      })
-    : undefined;
+  // Both methods must stay reachable from a fresh connection, without a separate setup visit.
+  if (!emailSignIn) {
+    if (await isChatGptConnection(oauth, request)) return startGoogleSignIn(oauth, request, config);
+    const remember = await rememberedConsent(config.clientSecret, c.env.APP_ORIGIN);
+    if (await oauth.isConsentRemembered(c.req.raw, request, remember))
+      return startGoogleSignIn(oauth, request, config);
+  }
   return authorizationPage(
     oauth,
     request,
     /^en\b/i.test(c.req.header('Accept-Language') ?? ''),
-    preferEmail,
-    false,
-    headers,
+    emailSignIn,
   );
 });
 authRoutes.post('/authorize', async (c) => {
