@@ -60,7 +60,7 @@
     "@biomejs/biome": "2.6.2",
     "@cloudflare/vitest-plugin": "1.4.7",
     "@modelcontextprotocol/client": "2.3.1",
-    "@types/node": "24.19.2",
+    "@types/node": "26.6.5",
     "drizzle-kit": "0.31.11",
     "typescript": "7.0.2",
     "vitest": "5.0.5",
