@@ -1,17 +1,21 @@
-import { afterEach, describe, expect, it } from 'vitest';
 import type { Client } from '@modelcontextprotocol/client';
+import { afterEach, describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { ledgerStore } from '../src/db/ledger';
-import { createExpenseSchema, expenseSchema } from '../src/domain/expense';
-import { nextOccurrence, recurringSchema } from '../src/domain/planning';
+import { createExpenseSchema } from '../src/domain/expense';
+import { nextOccurrence } from '../src/domain/planning';
 import { createExpense, getCashFlow, updateExpense } from '../src/expenses/service';
+import {
+  entryResponseSchema as expenseSchema,
+  recurringResponseSchema as recurringSchema,
+} from '../src/mcp/contracts';
+import { contributeToGoal, createGoal, listGoals, updateGoal } from '../src/planning/goals';
 import {
   cancelRecurring,
   confirmRecurring,
   createRecurring,
   listRecurring,
 } from '../src/planning/recurring';
-import { contributeToGoal, createGoal, listGoals, updateGoal } from '../src/planning/goals';
 import { bindings, connect, expenseInput, principal } from './helpers';
 
 const clients: Client[] = [];

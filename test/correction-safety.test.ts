@@ -4,10 +4,10 @@ import { ledgerStore } from '../src/db/ledger';
 import {
   correctionMatchSchema,
   createExpenseSchema,
-  expenseSchema,
   updateExpenseSchema,
 } from '../src/domain/expense';
 import { createExpense, updateExpense } from '../src/expenses/service';
+import { entryResponseSchema as expenseSchema } from '../src/mcp/contracts';
 import { bindings, connect, dispatch, expenseInput, principal } from './helpers';
 
 const syntheticInput = (overrides: Record<string, unknown> = {}) =>

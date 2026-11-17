@@ -1,6 +1,6 @@
 import { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/client';
 import { z } from 'zod';
-import { expenseSchema } from '../src/domain/expense.ts';
+import { entryResponseSchema as expenseSchema } from '../src/mcp/entry-response.ts';
 import { ScenarioFailure } from './mcp-scenarios.ts';
 
 export async function runCorrectionGuardProbes(endpoint: URL, accessToken: string) {

@@ -1,21 +1,25 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   createExecutionContext,
   createScheduledController,
   waitOnExecutionContext,
 } from 'cloudflare:test';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
-import { ledgerStore, verifyAuditChain } from '../src/db/ledger';
 import { automaticRecordingOwners, publicAutomaticRecordingOwners } from '../src/db/automatic';
-import { createExpenseSchema, expenseSchema, todayInMexico } from '../src/domain/expense';
+import { ledgerStore, verifyAuditChain } from '../src/db/ledger';
+import { createExpenseSchema, todayInMexico } from '../src/domain/expense';
 import { requestHash } from '../src/domain/mutation';
-import { recurringSchema } from '../src/domain/planning';
 import {
   createExpense,
   deleteExpense,
   getCashFlow,
   getExpenseSummary,
 } from '../src/expenses/service';
+import worker from '../src/index';
+import {
+  entryResponseSchema as expenseSchema,
+  recurringResponseSchema as recurringSchema,
+} from '../src/mcp/contracts';
 import { recordAutomaticOccurrence, recordDueOccurrences } from '../src/planning/automatic';
 import {
   cancelRecurring,
@@ -24,7 +28,6 @@ import {
   skipRecurring,
   updateRecurring,
 } from '../src/planning/recurring';
-import worker from '../src/index';
 import { bindings, connect, dispatch, expenseInput, principal } from './helpers';
 
 const now = new Date('2026-10-24T06:05:00Z');

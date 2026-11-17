@@ -1,29 +1,27 @@
 import type { McpServer } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import type { Diagnostics } from '../diagnostics';
-import type { LedgerStore } from '../expenses/store';
 import { currencySchema, restoreEntrySchema } from '../domain/expense';
 import {
   backupDatasetSchema,
   backupSchema,
-  budgetSchema,
   historySchema,
   listBudgetsSchema,
-  preferencesSchema,
   reportSchema,
   setBudgetSchema,
   setPreferencesSchema,
 } from '../domain/insights';
 import { exportBackup, getActivityHistory, getLedgerReport } from '../expenses/queries';
 import { restoreEntry } from '../expenses/service';
+import type { LedgerStore } from '../expenses/store';
 import {
   getPreferences,
   listMonthlyBudgets,
   setMonthlyBudget,
   setPreferences,
 } from '../planning/budgets';
-import { toolResult, type Principal } from './results';
-import { entryOutput } from './contracts';
+import { budgetResponseSchema, entryOutput, savedPreferencesResponseSchema } from './contracts';
+import { type Principal, toolResult } from './results';
 
 const read = {
   readOnlyHint: true,
@@ -93,13 +91,13 @@ const preferencesOutput = z.object({
   version: z.number().int(),
   timezone: z.string(),
 });
-const savedPreferencesOutput = z.object({ preferences: preferencesSchema });
-const savedBudgetOutput = z.object({ budget: budgetSchema });
+const savedPreferencesOutput = z.object({ preferences: savedPreferencesResponseSchema });
+const savedBudgetOutput = z.object({ budget: budgetResponseSchema });
 const budgetsOutput = z.object({
   month: z.string(),
   timezone: z.string(),
   budgets: z.array(
-    budgetSchema.extend({
+    budgetResponseSchema.extend({
       spentAmount: z.string(),
       confirmedSpentAmount: z.string(),
       unverifiedAmount: z.string(),
@@ -137,6 +135,7 @@ export function registerInsights(
       toolResult(
         principal,
         'ledger:read',
+        reportOutput,
         () => getLedgerReport(store, principal.userId, input),
         diagnostics,
       ),
@@ -155,6 +154,7 @@ export function registerInsights(
       toolResult(
         principal,
         'ledger:read',
+        historyOutput,
         () => getActivityHistory(store, principal.userId, input),
         diagnostics,
       ),
@@ -173,6 +173,7 @@ export function registerInsights(
       toolResult(
         principal,
         'ledger:write',
+        entryOutput,
         async () => ({ entry: await restoreEntry(store, principal.userId, input) }),
         diagnostics,
       ),
@@ -191,6 +192,7 @@ export function registerInsights(
       toolResult(
         principal,
         'ledger:read',
+        preferencesOutput,
         () => getPreferences(store, principal.userId),
         diagnostics,
       ),
@@ -209,6 +211,7 @@ export function registerInsights(
       toolResult(
         principal,
         'ledger:write',
+        savedPreferencesOutput,
         async () => ({ preferences: await setPreferences(store, principal.userId, input) }),
         diagnostics,
       ),
@@ -227,6 +230,7 @@ export function registerInsights(
       toolResult(
         principal,
         'ledger:write',
+        savedBudgetOutput,
         async () => ({ budget: await setMonthlyBudget(store, principal.userId, input) }),
         diagnostics,
       ),
@@ -245,6 +249,7 @@ export function registerInsights(
       toolResult(
         principal,
         'ledger:read',
+        budgetsOutput,
         () => listMonthlyBudgets(store, principal.userId, input),
         diagnostics,
       ),
@@ -263,6 +268,7 @@ export function registerInsights(
       toolResult(
         principal,
         'ledger:read',
+        backupOutput,
         () => exportBackup(store, principal.userId, input),
         diagnostics,
       ),

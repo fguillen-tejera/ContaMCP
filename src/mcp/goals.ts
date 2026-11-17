@@ -1,20 +1,19 @@
 import type { McpServer } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import type { Diagnostics } from '../diagnostics';
-import type { LedgerStore } from '../expenses/store';
-import { toolResult, type Principal } from './results';
 import {
   contributeSchema,
   createGoalSchema,
-  goalSchema,
   planningListSchema,
   updateGoalSchema,
 } from '../domain/planning';
+import type { LedgerStore } from '../expenses/store';
 import { contributeToGoal, createGoal, listGoals, updateGoal } from '../planning/goals';
-import { readAnnotations, writeAnnotations, ledgerSecurity } from './contracts';
+import { goalResponseSchema, ledgerSecurity, readAnnotations, writeAnnotations } from './contracts';
+import { type Principal, toolResult } from './results';
 
 const goalOutput = z.object({
-  goal: goalSchema.extend({
+  goal: goalResponseSchema.extend({
     savedAmount: z.string(),
     remainingAmount: z.string(),
     reached: z.boolean(),
@@ -46,6 +45,7 @@ export function registerGoals(
       toolResult(
         principal,
         'ledger:write',
+        goalOutput,
         async () => ({ goal: await createGoal(store, principal.userId, input) }),
         diagnostics,
       ),
@@ -64,6 +64,7 @@ export function registerGoals(
       toolResult(
         principal,
         'ledger:read',
+        listSavingsGoalsOutputSchema,
         () => listGoals(store, principal.userId, input),
         diagnostics,
       ),
@@ -82,6 +83,7 @@ export function registerGoals(
       toolResult(
         principal,
         'ledger:write',
+        goalOutput,
         async () => ({ goal: await contributeToGoal(store, principal.userId, input) }),
         diagnostics,
       ),
@@ -100,6 +102,7 @@ export function registerGoals(
       toolResult(
         principal,
         'ledger:write',
+        goalOutput,
         async () => ({ goal: await updateGoal(store, principal.userId, input) }),
         diagnostics,
       ),

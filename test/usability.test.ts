@@ -1,5 +1,5 @@
-import { afterEach, describe, expect, it } from 'vitest';
 import type { Client } from '@modelcontextprotocol/client';
+import { afterEach, describe, expect, it } from 'vitest';
 import { z } from 'zod';
 import { ledgerStore, verifyAuditChain } from '../src/db/ledger';
 import { createExpenseSchema, type expenseSchema } from '../src/domain/expense';
@@ -10,27 +10,28 @@ import {
   setBudgetSchema,
 } from '../src/domain/insights';
 import {
-  createExpense,
-  deleteExpense,
-  listExpenses,
-  restoreEntry,
-  updateExpense,
-} from '../src/expenses/service';
-import {
   exportBackup,
   exportEntryPage,
   getActivityHistory,
   getLedgerReport,
 } from '../src/expenses/queries';
 import {
+  createExpense,
+  deleteExpense,
+  listExpenses,
+  restoreEntry,
+  updateExpense,
+} from '../src/expenses/service';
+import { budgetResponseSchema } from '../src/mcp/contracts';
+import { recordAutomaticOccurrence } from '../src/planning/automatic';
+import {
   getPreferences,
   listMonthlyBudgets,
   setMonthlyBudget,
   setPreferences,
 } from '../src/planning/budgets';
-import { confirmRecurring, createRecurring, listRecurring } from '../src/planning/recurring';
 import { contributeToGoal, createGoal } from '../src/planning/goals';
-import { recordAutomaticOccurrence } from '../src/planning/automatic';
+import { confirmRecurring, createRecurring, listRecurring } from '../src/planning/recurring';
 import { bindings, connect, expenseInput, principal } from './helpers';
 
 const clients: Client[] = [];
@@ -649,9 +650,9 @@ describe('bounded exports and discovery boundaries', () => {
       arguments: budgetInput({ limitAmount: '1' }),
     });
     expect(saved.isError).not.toBe(true);
-    expect(z.object({ budget: budgetSchema }).parse(saved.structuredContent).budget.version).toBe(
-      1,
-    );
+    expect(
+      z.object({ budget: budgetResponseSchema }).parse(saved.structuredContent).budget.version,
+    ).toBe(1);
     const expense = await create({ amount: '0.30' });
     expect(
       (await client.callTool({ name: 'list_monthly_budgets', arguments: { month: '2026-10' } }))
