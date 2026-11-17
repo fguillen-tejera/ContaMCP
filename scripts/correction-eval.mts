@@ -4,7 +4,7 @@ import { URL as NodeURL } from 'node:url';
 import { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/client';
 import { z } from 'zod';
 import { createExpenseSchema, toMinor } from '../src/domain/expense.ts';
-import { entryResponseSchema as expenseSchema } from '../src/mcp/contracts.ts';
+import { entryResponseSchema as expenseSchema } from '../src/mcp/entry-response.ts';
 import { stagingLogin } from './staging-auth.ts';
 
 const baseCases = z

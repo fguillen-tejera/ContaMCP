@@ -2,6 +2,9 @@ import { z } from 'zod';
 import { expenseSchema } from '../domain/expense';
 import { budgetSchema, exportSchema, preferencesSchema } from '../domain/insights';
 import { goalSchema, recurringSchema } from '../domain/planning';
+import { entryResponseSchema } from './entry-response';
+
+export { entryResponseSchema };
 
 export const readAnnotations = {
   readOnlyHint: true,
@@ -24,7 +27,6 @@ export const ledgerSecurity = (scope: 'ledger:read' | 'ledger:write') => ({
 });
 
 // Ordinary results expose actionable records; explicit exports retain the audit timestamps.
-export const entryResponseSchema = expenseSchema.omit({ createdAt: true, updatedAt: true }).strip();
 export const recurringResponseSchema = recurringSchema
   .omit({ createdAt: true, updatedAt: true })
   .strip();
