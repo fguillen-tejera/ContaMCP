@@ -1,8 +1,8 @@
-import { afterEach, describe, expect, it } from 'vitest';
 import type { Client } from '@modelcontextprotocol/client';
+import { afterEach, describe, expect, it } from 'vitest';
 import { z } from 'zod';
-import { expenseSchema } from '../src/domain/expense';
 import { verifyAuditChain } from '../src/db/ledger';
+import { entryResponseSchema as expenseSchema } from '../src/mcp/contracts';
 import { bindings, connect, dispatch, expenseInput, principal } from './helpers';
 
 const clients: Client[] = [];
@@ -162,8 +162,16 @@ describe('persisted MCP ledger', () => {
       .all<{ before_json: string | null; after_json: string }>();
     expect(history.results).toHaveLength(2);
     expect(history.results[0]?.before_json).toBeNull();
-    expect(JSON.parse(history.results[1]?.before_json ?? '{}')).toEqual(first);
-    expect(JSON.parse(history.results[1]?.after_json ?? '{}')).toEqual(changed);
+    expect(JSON.parse(history.results[1]?.before_json ?? '{}')).toMatchObject({
+      ...first,
+      createdAt: expect.any(String),
+      updatedAt: expect.any(String),
+    });
+    expect(JSON.parse(history.results[1]?.after_json ?? '{}')).toMatchObject({
+      ...changed,
+      createdAt: expect.any(String),
+      updatedAt: expect.any(String),
+    });
     expect(
       created(await client.callTool({ name: 'update_expense', arguments: correction })),
     ).toEqual(changed);
@@ -199,7 +207,6 @@ describe('persisted MCP ledger', () => {
       ...gone,
       version: 2,
       deletedAt: expect.any(String),
-      updatedAt: expect.any(String),
     });
     expect(created(await client.callTool({ name: 'delete_expense', arguments: args }))).toEqual(
       deleted,
@@ -241,9 +248,21 @@ describe('persisted MCP ledger', () => {
       .all<{ before_json: string; after_json: string }>();
     expect(history.results).toHaveLength(2);
     expect(history.results[0]?.before_json).toBeNull();
-    expect(JSON.parse(history.results[0]?.after_json ?? '{}')).toEqual(gone);
-    expect(JSON.parse(history.results[1]?.before_json ?? '{}')).toEqual(gone);
-    expect(JSON.parse(history.results[1]?.after_json ?? '{}')).toEqual(deleted);
+    expect(JSON.parse(history.results[0]?.after_json ?? '{}')).toMatchObject({
+      ...gone,
+      createdAt: expect.any(String),
+      updatedAt: expect.any(String),
+    });
+    expect(JSON.parse(history.results[1]?.before_json ?? '{}')).toMatchObject({
+      ...gone,
+      createdAt: expect.any(String),
+      updatedAt: expect.any(String),
+    });
+    expect(JSON.parse(history.results[1]?.after_json ?? '{}')).toMatchObject({
+      ...deleted,
+      createdAt: expect.any(String),
+      updatedAt: expect.any(String),
+    });
     expect(user.userId).toBeTruthy();
   });
 

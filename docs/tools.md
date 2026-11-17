@@ -6,6 +6,18 @@ and a JSON text representation. Errors have `isError: true` and structured `{err
 for application failures; SDK schema failures also return MCP tool errors describing invalid input.
 No SQL, token or financial record is included in internal error messages.
 
+Ordinary entry, schedule, goal, and budget responses omit storage `createdAt`/`updatedAt` timestamps.
+Preference updates return only `defaultCurrency` and the concurrency `version`, without a preference
+record ID. Entry/schedule/goal/budget IDs remain because tools require them to identify the exact
+record for authorized changes and pagination. Transaction dates and deletion status remain meaningful
+ledger fields. Duplicate candidates use the same minimized entry shape.
+
+The MCP boundary parses each successful result against its declared output schema before returning
+either JSON text or structured content. Undeclared properties are not returned. Invalid results fail
+closed as tool errors. Persistence and retry receipts keep full domain records. Explicit history,
+export, and complete-backup requests retain the timestamps and audit receipts needed for those
+requests; those exports are not automatically included in ordinary answers.
+
 The new income, duplicate-review, recurrence, and savings tools are documented in
 [financial workflows](financial-workflows.md). See [search, reports, history, budgets, preferences, and bounded exports](ledger-ux.md) for the additional contracts.
 This page describes the six legacy expense tools.

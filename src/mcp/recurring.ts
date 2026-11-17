@@ -1,35 +1,40 @@
 import type { McpServer } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import type { Diagnostics } from '../diagnostics';
-import type { LedgerStore } from '../expenses/store';
-import { toolResult, type Principal } from './results';
 import {
   cancelRecurringSchema,
   confirmRecurringSchema,
   createRecurringSchema,
   listRecurringSchema,
-  recurringSchema,
-  updateRecurringSchema,
   skipRecurringSchema,
+  updateRecurringSchema,
 } from '../domain/planning';
+import type { LedgerStore } from '../expenses/store';
 import {
   cancelRecurring,
   confirmRecurring,
   createRecurring,
   listRecurring,
-  updateRecurring,
   skipRecurring,
+  updateRecurring,
 } from '../planning/recurring';
-import { readAnnotations, writeAnnotations, ledgerSecurity, entryOutput } from './contracts';
+import {
+  entryOutput,
+  ledgerSecurity,
+  readAnnotations,
+  recurringResponseSchema,
+  writeAnnotations,
+} from './contracts';
+import { type Principal, toolResult } from './results';
 
 const createRecurringEntryInputSchema = createRecurringSchema.extend({
   automatic: z.boolean().optional(),
 });
 
-const recurringOutput = z.object({ recurring: recurringSchema });
+const recurringOutput = z.object({ recurring: recurringResponseSchema });
 
 const listRecurringEntriesOutputSchema = z.object({
-  recurring: z.array(recurringSchema.extend({ due: z.boolean() })),
+  recurring: z.array(recurringResponseSchema.extend({ due: z.boolean() })),
   nextAfterId: z.string().nullable(),
   nextAfterDate: z.string().nullable(),
 });
@@ -54,6 +59,7 @@ export function registerRecurring(
       toolResult(
         principal,
         'ledger:write',
+        recurringOutput,
         async () => ({ recurring: await createRecurring(store, principal.userId, input) }),
         diagnostics,
       ),
@@ -72,6 +78,7 @@ export function registerRecurring(
       toolResult(
         principal,
         'ledger:read',
+        listRecurringEntriesOutputSchema,
         () => listRecurring(store, principal.userId, input),
         diagnostics,
       ),
@@ -90,6 +97,7 @@ export function registerRecurring(
       toolResult(
         principal,
         'ledger:write',
+        entryOutput,
         async () => ({ entry: await confirmRecurring(store, principal.userId, input) }),
         diagnostics,
       ),
@@ -108,6 +116,7 @@ export function registerRecurring(
       toolResult(
         principal,
         'ledger:write',
+        recurringOutput,
         async () => ({ recurring: await cancelRecurring(store, principal.userId, input) }),
         diagnostics,
       ),
@@ -126,6 +135,7 @@ export function registerRecurring(
       toolResult(
         principal,
         'ledger:write',
+        recurringOutput,
         async () => ({ recurring: await updateRecurring(store, principal.userId, input) }),
         diagnostics,
       ),
@@ -144,6 +154,7 @@ export function registerRecurring(
       toolResult(
         principal,
         'ledger:write',
+        recurringOutput,
         async () => ({ recurring: await skipRecurring(store, principal.userId, input) }),
         diagnostics,
       ),

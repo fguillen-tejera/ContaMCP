@@ -3,7 +3,8 @@ import { createInterface } from 'node:readline';
 import { URL as NodeURL } from 'node:url';
 import { Client, StreamableHTTPClientTransport } from '@modelcontextprotocol/client';
 import { z } from 'zod';
-import { createExpenseSchema, expenseSchema, toMinor } from '../src/domain/expense.ts';
+import { createExpenseSchema, toMinor } from '../src/domain/expense.ts';
+import { entryResponseSchema as expenseSchema } from '../src/mcp/contracts.ts';
 import { stagingLogin } from './staging-auth.ts';
 
 const baseCases = z
@@ -234,7 +235,6 @@ try {
             amount: targetBefore.amount,
             amountMinor: targetBefore.amountMinor,
             version: targetBefore.version,
-            updatedAt: targetBefore.updatedAt,
           }) === JSON.stringify(targetBefore);
         const row = {
           id: c.id,

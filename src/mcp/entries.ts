@@ -1,17 +1,14 @@
 import type { McpServer } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import type { Diagnostics } from '../diagnostics';
-import type { LedgerStore } from '../expenses/store';
-import { toolResult, type Principal } from './results';
 import {
   createExpenseSchema,
-  entryTypeSchema,
   currencySchema,
-  expenseSchema,
+  deleteEntrySchema,
+  entryTypeSchema,
   filterSchema,
   listExpenseSchema,
   updateEntrySchema,
-  deleteEntrySchema,
 } from '../domain/expense';
 import { exportSchema } from '../domain/insights';
 import { exportEntryPage } from '../expenses/queries';
@@ -22,18 +19,21 @@ import {
   listExpenses,
   updateExpense,
 } from '../expenses/service';
+import type { LedgerStore } from '../expenses/store';
 import {
+  entryExportOutput,
+  entryOutput,
+  entryResponseSchema,
+  ledgerSecurity,
   readAnnotations,
   writeAnnotations,
-  ledgerSecurity,
-  entryOutput,
-  entryExportOutput,
 } from './contracts';
+import { type Principal, toolResult } from './results';
 
 const createEntryInputSchema = createExpenseSchema.safeExtend({ type: entryTypeSchema });
 
 const listEntriesOutputSchema = z.object({
-  entries: z.array(expenseSchema),
+  entries: z.array(entryResponseSchema),
   nextCursor: z.string().nullable(),
 });
 
@@ -71,6 +71,7 @@ export function registerEntries(
       toolResult(
         principal,
         'ledger:write',
+        entryOutput,
         async () => ({ entry: await createExpense(store, principal.userId, input) }),
         diagnostics,
       ),
@@ -89,6 +90,7 @@ export function registerEntries(
       toolResult(
         principal,
         'ledger:read',
+        listEntriesOutputSchema,
         async () => {
           const result = await listExpenses(store, principal.userId, input);
           return { entries: result.expenses, nextCursor: result.nextCursor };
@@ -110,6 +112,7 @@ export function registerEntries(
       toolResult(
         principal,
         'ledger:write',
+        entryOutput,
         async () => ({
           entry: await updateExpense(store, principal.userId, {
             expenseId: input.entryId,
@@ -136,6 +139,7 @@ export function registerEntries(
       toolResult(
         principal,
         'ledger:write',
+        entryOutput,
         async () => ({
           entry: await deleteExpense(store, principal.userId, {
             expenseId: input.entryId,
@@ -161,6 +165,7 @@ export function registerEntries(
       toolResult(
         principal,
         'ledger:read',
+        getCashFlowOutputSchema,
         () => getCashFlow(store, principal.userId, input),
         diagnostics,
       ),
@@ -179,6 +184,7 @@ export function registerEntries(
       toolResult(
         principal,
         'ledger:read',
+        entryExportOutput,
         () => exportEntryPage(store, principal.userId, input),
         diagnostics,
       ),

@@ -176,3 +176,11 @@ delivery to ChatGPT; it does not use headers or self-asserted metadata as authen
 The downstream token exchange still binds client, exact redirect, resource and S256 verifier; Google
 verification remains the sole source of the ledger owner. No registration/lookup shortcut grants a
 user identity, token, or ledger operation. See [setup and policy](authentication.md).
+
+### MCP response projection
+
+The domain schemas describe persisted records. MCP response schemas in `src/mcp/contracts.ts`
+project ordinary records to their actionable fields, omitting storage timestamps and preference IDs.
+Every successful tool response is parsed against its advertised output schema before serialization;
+duplicate error candidates are also projected. Explicit export/history tools preserve their requested
+audit data. This does not change money, ownership checks, optimistic versions, or stored retry receipts.

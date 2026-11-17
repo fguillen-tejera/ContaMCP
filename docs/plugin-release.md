@@ -20,7 +20,7 @@ pnpm install --frozen-lockfile
 pnpm check
 pnpm build:website
 pnpm package:plugin
-unzip -l dist/plugins/contamcp-0.1.5.zip
+unzip -l dist/plugins/contamcp-0.1.6.zip
 ```
 
 The build archives only three explicit files from `plugins/contamcp/`, rejects symlinks in those
@@ -29,7 +29,12 @@ The ZIP has `plugin.json` and `mcp.json` at its root. Build outputs remain ignor
 Do not add `.dev.vars*`, `.wrangler/`, local Wrangler configuration, reviewer credentials, account
 identifiers, tokens, callback URLs, production exports or private recordings to the public package.
 
-The package is version `0.1.5`; this is a submission candidate, not an approval claim. Change the version
+The package is version `0.1.6`; it is a local remediation candidate, not ready for resubmission.
+The v0.1.5 review reported sign-in failure, age-suitability, and unnecessary identifiers.
+Ordinary response minimization is implemented; the exact flagged identifier and age-suitability
+example have not been provided. Verify saved credentials and fresh reviewer access on the exact
+new draft, and resolve the policy finding before submitting. A working owner connection or clean
+MCP scan does not establish reviewer access or policy approval. Change the version
 when uploading a revised package. Update the listing fields in source rather than relying on edits
 in the portal. Keep the public display name aligned with the product; resolve any naming finding
 with the reviewer rather than advertising OpenAI endorsement.

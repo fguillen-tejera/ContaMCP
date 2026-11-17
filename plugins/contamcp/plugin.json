@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "contamcp",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Keep a private income and expense ledger through your assistant, with exact currency totals, audited corrections, recurring bookkeeping and exports.",
   "author": {
     "name": "Fernando Guillen",
@@ -94,7 +94,7 @@
         }
       },
       "publication": {
-        "release_notes": "Make Google and provisioned ContaMCP email/password sign-in available directly on every OAuth connection. Remove the ten-minute, one-use login-page preference so reviewers can sign in from a fresh browser or retry a connection without extra setup. Financial tools, permissions, reviewer account, test cases and recorded walkthrough are unchanged.",
+        "release_notes": "Minimize ordinary tool responses: omit storage timestamps and preference record IDs, and project results and duplicate candidates to their declared schemas. Preserve record IDs and versions required for safe edits, and retain audit data in explicit history and export requests.",
         "translations": {
           "es-MX": {
             "subtitle": "Ingresos, gastos y presupuesto",

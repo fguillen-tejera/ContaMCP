@@ -1,13 +1,15 @@
 import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
-import { LedgerError } from '../domain/expense';
 import type { Diagnostics } from '../diagnostics';
+import { LedgerError } from '../domain/expense';
+import { entryResponseSchema } from './contracts';
 
 export type Principal = { userId: string; scopes: readonly string[]; resourceMetadata: string };
 
 export async function toolResult(
   principal: Principal,
   scope: string,
+  outputSchema: z.ZodType<Record<string, unknown>>,
   action: () => Promise<Record<string, unknown>>,
   diagnostics?: Diagnostics,
 ): Promise<CallToolResult> {
@@ -26,7 +28,15 @@ export async function toolResult(
     };
   }
   try {
-    const output = await action();
+    const result = outputSchema.safeParse(await action());
+    if (!result.success) {
+      diagnostics?.report('tool_failed');
+      return failure(
+        'INTERNAL_ERROR',
+        'Operation returned an invalid result. Retry with the same idempotency key if this was a mutation.',
+      );
+    }
+    const output = result.data;
     return { content: [{ type: 'text', text: JSON.stringify(output) }], structuredContent: output };
   } catch (error) {
     if (error instanceof LedgerError) return failure(error.code, error.message, error.details);
@@ -41,7 +51,10 @@ export async function toolResult(
 }
 
 function failure(code: string, message: string, details?: Record<string, unknown>): CallToolResult {
-  const output = { error: { code, message, ...details } };
+  const parsed = z
+    .object({ candidates: z.array(entryResponseSchema).optional() })
+    .safeParse(details ?? {});
+  const output = { error: { code, message, ...(parsed.success ? parsed.data : {}) } };
   return {
     isError: true,
     structuredContent: output,

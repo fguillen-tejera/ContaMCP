@@ -1,13 +1,10 @@
 import type { McpServer } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import type { Diagnostics } from '../diagnostics';
-import type { LedgerStore } from '../expenses/store';
-import { toolResult, type Principal } from './results';
 import {
   createExpenseSchema,
   currencySchema,
   deleteExpenseSchema,
-  expenseSchema,
   filterSchema,
   listExpenseSchema,
   updateExpenseSchema,
@@ -21,20 +18,27 @@ import {
   listExpenses,
   updateExpense,
 } from '../expenses/service';
-import { readAnnotations, writeAnnotations, expenseExportOutput } from './contracts';
+import type { LedgerStore } from '../expenses/store';
+import {
+  entryResponseSchema,
+  expenseExportOutput,
+  readAnnotations,
+  writeAnnotations,
+} from './contracts';
+import { type Principal, toolResult } from './results';
 
 const createExpenseInputSchema = createExpenseSchema.safeExtend({
   type: z.literal('expense').default('expense'),
 });
 
-const expenseOutput = z.object({ expense: expenseSchema });
+const expenseOutput = z.object({ expense: entryResponseSchema });
 
 const listExpensesInputSchema = listExpenseSchema.safeExtend({
   type: z.literal('expense').optional(),
 });
 
 const listExpensesOutputSchema = z.object({
-  expenses: z.array(expenseSchema),
+  expenses: z.array(entryResponseSchema),
   nextCursor: z.string().nullable(),
 });
 
@@ -74,6 +78,7 @@ export function registerExpenses(
       toolResult(
         principal,
         'expenses:write',
+        expenseOutput,
         async () => ({
           expense: await createExpense(store, principal.userId, input),
         }),
@@ -94,6 +99,7 @@ export function registerExpenses(
       toolResult(
         principal,
         'expenses:read',
+        listExpensesOutputSchema,
         () => listExpenses(store, principal.userId, { ...input, type: 'expense' }),
         diagnostics,
       ),
@@ -112,6 +118,7 @@ export function registerExpenses(
       toolResult(
         principal,
         'expenses:write',
+        expenseOutput,
         async () => ({
           expense: await updateExpense(store, principal.userId, {
             ...input,
@@ -135,6 +142,7 @@ export function registerExpenses(
       toolResult(
         principal,
         'expenses:write',
+        expenseOutput,
         async () => ({
           expense: await deleteExpense(store, principal.userId, {
             ...input,
@@ -158,6 +166,7 @@ export function registerExpenses(
       toolResult(
         principal,
         'expenses:read',
+        getExpenseSummaryOutputSchema,
         () => getExpenseSummary(store, principal.userId, { ...input, type: 'expense' }),
         diagnostics,
       ),
@@ -176,6 +185,7 @@ export function registerExpenses(
       toolResult(
         principal,
         'expenses:read',
+        expenseExportOutput,
         async () => {
           const { entries, ...result } = await exportEntryPage(
             store,
